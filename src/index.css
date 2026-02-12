@@ -1,0 +1,300 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Earthy Golden Palette - Warm, organic, premium */
+    --background: 190 35% 10%;
+    /* #0F2C36 base converted to HSL-ish deep teal-black */
+    --foreground: 45 30% 90%;
+
+    --card: 188 40% 12%;
+    /* Slightly lighter than bg */
+    --card-foreground: 45 30% 90%;
+
+    --popover: 188 40% 12%;
+    --popover-foreground: 45 30% 90%;
+
+    --primary: 48 55% 60%;
+    /* #D4C55D golden yellow */
+    --primary-foreground: 190 35% 10%;
+
+    --secondary: 180 30% 14%;
+    /* #243338 dark teal */
+    --secondary-foreground: 45 30% 90%;
+
+    --muted: 180 25% 16%;
+    --muted-foreground: 45 15% 55%;
+
+    --accent: 25 55% 35%;
+    /* #804926 burnt orange/brown */
+    --accent-foreground: 45 30% 95%;
+
+    --destructive: 0 65% 50%;
+    --destructive-foreground: 45 30% 95%;
+
+    --border: 180 25% 18%;
+    --input: 180 30% 14%;
+    --ring: 48 55% 60%;
+
+    --radius: 1rem;
+
+    /* Custom tokens for glassmorphism - warm tinted */
+    --glass: 188 35% 12% / 0.7;
+    --glass-border: 45 30% 25%;
+    --glass-highlight: 45 50% 80% / 0.05;
+
+    /* Gradient tokens - warm golden */
+    --gradient-primary: linear-gradient(135deg, hsl(48 55% 60%), hsl(35 60% 50%));
+    --gradient-accent: linear-gradient(135deg, hsl(25 55% 35%), hsl(48 55% 60%));
+    --gradient-ai: linear-gradient(135deg, hsl(35 70% 45%), hsl(48 65% 55%));
+    --gradient-hero: radial-gradient(ellipse 80% 50% at 50% -20%, hsl(48 55% 60% / 0.15), transparent);
+
+    /* Glow effects - warm amber */
+    --glow-primary: 0 0 40px hsl(48 55% 60% / 0.25);
+    --glow-accent: 0 0 40px hsl(25 55% 35% / 0.3);
+    --glow-ai: 0 0 60px hsl(35 70% 45% / 0.4), 0 0 120px hsl(48 55% 60% / 0.15);
+
+    /* Stat colors - warm palette */
+    --stat-water: 180 45% 45%;
+    /* Teal for water */
+    --stat-steps: 48 60% 55%;
+    /* Golden */
+    --stat-calories: 25 60% 50%;
+    /* Burnt orange */
+    --stat-heart: 350 55% 55%;
+    /* Warm red */
+
+    /* Sidebar - deep organic feel */
+    --sidebar-background: 188 40% 9%;
+    --sidebar-foreground: 45 25% 75%;
+    --sidebar-primary: 48 55% 60%;
+    --sidebar-primary-foreground: 190 35% 10%;
+    --sidebar-accent: 180 30% 14%;
+    --sidebar-accent-foreground: 45 30% 95%;
+    --sidebar-border: 180 25% 15%;
+    --sidebar-ring: 48 55% 60%;
+
+    /* Organic greens and olives */
+    --olive: 68 55% 14%;
+    /* #27360F */
+    --olive-light: 68 40% 22%;
+    --amber: 48 55% 60%;
+    --copper: 25 55% 35%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'Inter', sans-serif;
+  }
+}
+
+@layer components {
+
+  /* Glassmorphism card - warm tint */
+  .glass-card {
+    @apply relative overflow-hidden rounded-2xl border border-primary/10;
+    background: linear-gradient(135deg,
+        hsl(var(--glass)) 0%,
+        hsl(188 40% 10% / 0.85) 100%);
+    backdrop-filter: blur(20px);
+  }
+
+  .glass-card::before {
+    content: '';
+    @apply absolute inset-0 rounded-2xl;
+    background: linear-gradient(135deg,
+        hsl(var(--glass-highlight)) 0%,
+        transparent 50%);
+    pointer-events: none;
+  }
+
+  /* AI Card with warm glow */
+  .ai-card {
+    @apply glass-card relative;
+    box-shadow: var(--glow-ai);
+    border-color: hsl(35 70% 45% / 0.3);
+  }
+
+  .ai-card::after {
+    content: '';
+    @apply absolute -inset-[1px] rounded-2xl -z-10;
+    background: var(--gradient-ai);
+    opacity: 0.4;
+    filter: blur(2px);
+  }
+
+  /* Stat card variants */
+  .stat-card {
+    @apply glass-card p-6 transition-all duration-300;
+  }
+
+  /* Global sleek transition for interactive elements */
+  button,
+  a,
+  input,
+  .glass-card,
+  .stat-card,
+  .feature-card,
+  .sidebar-item,
+  .cursor-pointer {
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .stat-card:hover {
+    @apply border-primary/30;
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px hsl(48 55% 60% / 0.15);
+  }
+
+  /* Progress ring */
+  .progress-ring {
+    transform: rotate(-90deg);
+  }
+
+  .progress-ring-circle {
+    transition: stroke-dashoffset 0.5s ease-out;
+  }
+
+  /* Gradient text - golden */
+  .gradient-text {
+    @apply bg-clip-text text-transparent;
+    background-image: var(--gradient-primary);
+  }
+
+  .gradient-text-ai {
+    @apply bg-clip-text text-transparent;
+    background-image: var(--gradient-ai);
+  }
+
+  /* Button glow - warm amber */
+  .btn-glow {
+    @apply relative overflow-hidden;
+    box-shadow: var(--glow-primary);
+  }
+
+  .btn-glow:hover {
+    box-shadow: 0 0 60px hsl(48 55% 60% / 0.4);
+  }
+
+  /* Navigation link */
+  .nav-link {
+    @apply relative text-muted-foreground transition-colors duration-200;
+  }
+
+  .nav-link:hover {
+    @apply text-foreground;
+  }
+
+  .nav-link.active {
+    @apply text-primary;
+  }
+
+  /* Sidebar item */
+  .sidebar-item {
+    @apply flex items-center gap-3 px-4 py-3 rounded-xl text-muted-foreground transition-all duration-200;
+  }
+
+  .sidebar-item:hover {
+    @apply bg-secondary text-foreground;
+  }
+
+  .sidebar-item.active {
+    @apply bg-primary/10 text-primary;
+  }
+
+  /* Feature card hover */
+  .feature-card {
+    @apply glass-card p-6 transition-all duration-300;
+  }
+
+  .feature-card:hover {
+    @apply border-primary/30;
+    box-shadow: var(--glow-primary);
+  }
+
+  /* Input styling - warm tint */
+  .input-glass {
+    @apply bg-secondary/50 border-primary/10 focus:border-primary/50 focus:ring-primary/20;
+  }
+
+  /* Organic blob shape */
+  .organic-blob {
+    border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+    animation: morph 8s ease-in-out infinite;
+  }
+
+  @keyframes morph {
+
+    0%,
+    100% {
+      border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+    }
+
+    50% {
+      border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%;
+    }
+  }
+}
+
+@layer utilities {
+  .animate-glow {
+    animation: glow 2s ease-in-out infinite alternate;
+  }
+
+  @keyframes glow {
+    from {
+      box-shadow: 0 0 20px hsl(48 55% 60% / 0.2);
+    }
+
+    to {
+      box-shadow: 0 0 40px hsl(48 55% 60% / 0.4);
+    }
+  }
+
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  @keyframes float {
+
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  .animate-pulse-slow {
+    animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  /* Gradient border - golden */
+  .gradient-border {
+    @apply relative;
+  }
+
+  .gradient-border::before {
+    content: '';
+    @apply absolute -inset-[1px] rounded-2xl -z-10;
+    background: var(--gradient-primary);
+    opacity: 0.5;
+  }
+
+  /* Inner glow effect */
+  .inner-glow {
+    box-shadow: inset 0 0 30px hsl(48 55% 60% / 0.1);
+  }
+}
