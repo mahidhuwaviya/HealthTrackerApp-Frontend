@@ -15,7 +15,7 @@ interface OverviewViewProps {
     data?: DashboardDTO;
 }
 
-export const OverviewView = ({ data, targets }: OverviewViewProps & { targets: { workouts: number } }) => {
+export const OverviewView = ({ data, targets }: OverviewViewProps & { targets: { calories: number, water: number, steps: number, workouts: number } }) => {
     // Recent Activity Logic
     const activities = [];
 
@@ -56,15 +56,15 @@ export const OverviewView = ({ data, targets }: OverviewViewProps & { targets: {
     const waterCurrent = (typeof rawWater === 'object' && rawWater !== null)
         ? (rawWater.totalamountMl || rawWater.waterTotal || 0)
         : (rawWater || 0);
-    const waterGoal = data?.profile?.dailyWaterGoalMl || 2000;
+    const waterGoal = targets.water || 2000;
     const waterProgress = waterGoal > 0 ? Math.min((waterCurrent / waterGoal) * 100, 100) : 0;
 
     const stepsCurrent = data?.walkingStats?.steps || 0;
-    const stepsGoal = 10000;
+    const stepsGoal = targets.steps || 10000;
     const stepsProgress = Math.min((stepsCurrent / stepsGoal) * 100, 100);
 
     const caloriesCurrent = data?.dailyLog?.totalDailyCalories || 0;
-    const caloriesGoal = data?.profile?.dailyCalorieTarget || 2000;
+    const caloriesGoal = targets.calories || 2000;
     const caloriesProgress = Math.min((caloriesCurrent / caloriesGoal) * 100, 100);
 
     // Workout Metrics (New)

@@ -29,7 +29,7 @@ export const WorkoutsView = ({
 }: WorkoutsViewProps) => {
 
     const workoutData = data?.workoutLog;
-    const exercises = workoutData?.exerciseEntries || workoutData?.exercises || [];
+    const exercises = workoutData?.exerciseEntries || [];
     const workoutsCount = exercises.length;
 
     // Calculate totals if not provided.
@@ -70,7 +70,7 @@ export const WorkoutsView = ({
                     {/* Ring Section */}
                     <div className="flex flex-col items-center justify-center p-6 bg-secondary/30 rounded-3xl border border-white/5 shadow-inner">
                         {(() => {
-                            const dailyGoal = data?.profile?.dailyGoalWorkoutTarget || targets.workouts || 45;
+                            const dailyGoal = targets.workouts || 45;
                             const currentDailyMins = data?.workoutLog?.totalMinsWorkoutToday || totalDuration;
                             const dailyProgress = Math.min((totalDuration / dailyGoal) * 100, 100);
                             const isGoalAchieved = currentDailyMins >= dailyGoal;
