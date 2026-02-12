@@ -78,8 +78,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         // Cleanup local storage if we used it for other things
         localStorage.removeItem("user");
 
-        if (window.location.pathname !== "/login") {
-            window.location.href = "/login";
+        if (window.location.pathname !== "/") {
+            window.location.href = "/";
         }
     }, [queryClient]);
 
