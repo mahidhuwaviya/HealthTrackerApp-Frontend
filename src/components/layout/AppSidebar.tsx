@@ -37,7 +37,7 @@ import { useAuth } from "@/hooks/useAuth";
 
 export function AppSidebar() {
   const [location] = useLocation();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
 
   const isActive = (href: string) => location === href;
 
@@ -114,6 +114,17 @@ export function AppSidebar() {
                 <Settings className="w-5 h-5" />
                 <span className="group-data-[collapsible=icon]:hidden">Settings</span>
               </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              onClick={logout}
+              tooltip="Log Out"
+              className="text-red-500 hover:text-red-600 hover:bg-red-500/10"
+            >
+              <LogOut className="w-5 h-5" />
+              <span className="group-data-[collapsible=icon]:hidden">Log Out</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
 

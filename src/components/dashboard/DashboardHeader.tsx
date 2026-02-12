@@ -66,12 +66,7 @@ export const DashboardHeader = ({
                             <DropdownMenuItem className="cursor-pointer gap-2 focus:bg-primary/10 focus:text-primary" onClick={onUpdateProfile}>
                                 <User className="w-4 h-4" /> Update Profile
                             </DropdownMenuItem>
-                            <DropdownMenuItem className="cursor-pointer gap-2 text-destructive focus:bg-destructive/10 focus:text-destructive" onClick={() => {
-                                logout();
-                                window.location.href = "/";
-                            }}>
-                                <LogOut className="w-4 h-4" /> Logout
-                            </DropdownMenuItem>
+
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </div>
