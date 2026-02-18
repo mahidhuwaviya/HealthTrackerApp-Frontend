@@ -38,9 +38,9 @@ export const MealsView = ({
     const progress = Math.min((caloriesConsumed / targets.calories) * 100, 100);
 
     const macros = [
-        { label: "Protein", value: dailyLog?.totalDailyProtein || 0, unit: "g", color: "bg-blue-500" },
-        { label: "Carbs", value: dailyLog?.totalDailyCarbs || 0, unit: "g", color: "bg-green-500" },
-        { label: "Fats", value: dailyLog?.totalDailyFats || 0, unit: "g", color: "bg-yellow-500" },
+        { label: "Protein", value: Math.round(dailyLog?.totalDailyProtein || 0), unit: "g", color: "bg-blue-500" },
+        { label: "Carbs", value: Math.round(dailyLog?.totalDailyCarbs || 0), unit: "g", color: "bg-green-500" },
+        { label: "Fats", value: Math.round(dailyLog?.totalDailyFats || 0), unit: "g", color: "bg-yellow-500" },
     ];
 
     return (
@@ -81,7 +81,7 @@ export const MealsView = ({
                                 </div>
                                 <div className="text-right flex flex-col items-end">
                                     <span className="text-muted-foreground text-xs uppercase tracking-wider font-semibold">Eaten</span>
-                                    <span className="font-bold text-xl text-calories">{caloriesConsumed}</span>
+                                    <span className="font-bold text-xl text-calories">{Math.round(caloriesConsumed)}</span>
                                 </div>
                             </div>
 
@@ -165,12 +165,16 @@ export const MealsView = ({
                                                 <th className="px-5 py-3 text-left font-semibold text-calories/80 uppercase tracking-wider text-xs border-b border-white/5">Food</th>
                                                 <th className="px-5 py-3 text-left font-semibold text-calories/80 uppercase tracking-wider text-xs border-b border-white/5 w-[100px]">Type</th>
                                                 <th className="px-5 py-3 text-right font-semibold text-calories/80 uppercase tracking-wider text-xs border-b border-white/5">Qty</th>
+                                                <th className="px-5 py-3 text-right font-semibold text-calories/80 uppercase tracking-wider text-xs border-b border-white/5">Cals</th>
+                                                <th className="px-5 py-3 text-right font-semibold text-calories/80 uppercase tracking-wider text-xs border-b border-white/5">P (g)</th>
+                                                <th className="px-5 py-3 text-right font-semibold text-calories/80 uppercase tracking-wider text-xs border-b border-white/5">C (g)</th>
+                                                <th className="px-5 py-3 text-right font-semibold text-calories/80 uppercase tracking-wider text-xs border-b border-white/5">F (g)</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-white/5">
                                             {mealLogs.length === 0 ? (
                                                 <tr>
-                                                    <td colSpan={4} className="px-6 py-12 text-center text-muted-foreground">
+                                                    <td colSpan={8} className="px-6 py-12 text-center text-muted-foreground">
                                                         <div className="flex flex-col items-center gap-2">
                                                             <Utensils className="w-8 h-8 text-muted-foreground/30 mb-2" />
                                                             <p>No meals logged today.</p>
@@ -192,7 +196,11 @@ export const MealsView = ({
                                                                 {meal.type.toLowerCase().replace('_', ' ')}
                                                             </span>
                                                         </td>
-                                                        <td className="px-5 py-3 text-right font-medium">{meal.quantity}</td>
+                                                        <td className="px-5 py-3 text-right font-medium">{Math.round(meal.quantity)}</td>
+                                                        <td className="px-5 py-3 text-right font-medium text-calories">{meal.calories ? Math.round(meal.calories) : '-'}</td>
+                                                        <td className="px-5 py-3 text-right text-muted-foreground">{meal.protein ? Math.round(meal.protein) : '-'}</td>
+                                                        <td className="px-5 py-3 text-right text-muted-foreground">{meal.carbs ? Math.round(meal.carbs) : '-'}</td>
+                                                        <td className="px-5 py-3 text-right text-muted-foreground">{meal.fats ? Math.round(meal.fats) : '-'}</td>
                                                     </tr>
                                                 ))
                                             )}

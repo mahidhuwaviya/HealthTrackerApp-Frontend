@@ -27,7 +27,7 @@ export const WelcomeModal = ({ isOpen, onClose, onStartSetup }: WelcomeModalProp
             <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" />
 
             {/* Modal Content */}
-            <div className="relative w-full max-w-5xl bg-card rounded-3xl shadow-2xl p-8 md:p-12 animate-in fade-in zoom-in-95 duration-300 border border-border/50">
+            <div className="relative w-[90%] md:w-full md:max-w-5xl bg-card rounded-3xl shadow-2xl p-6 md:p-12 animate-in fade-in zoom-in-95 duration-300 border border-border/50 max-h-[90vh] overflow-y-auto custom-scrollbar">
 
                 {/* Header */}
                 <div className="text-center space-y-4 mb-12">

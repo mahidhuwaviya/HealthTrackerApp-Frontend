@@ -98,7 +98,7 @@ export const WorkoutsView = ({
                                         )}
                                     </div>
                                     <div className="mt-4 text-center">
-                                        <span className="text-3xl font-bold text-primary">{totalDuration}</span>
+                                        <span className="text-3xl font-bold text-primary">{Math.round(totalDuration)}</span>
                                         <span className="text-muted-foreground text-lg ml-1">/ {dailyGoal} min</span>
                                     </div>
                                 </div>
@@ -112,7 +112,7 @@ export const WorkoutsView = ({
                             <span className="text-muted-foreground font-medium">Completed (Today)</span>
                             <div className="flex items-center gap-2">
                                 <Clock className="w-5 h-5 text-primary" />
-                                <span className="font-bold text-2xl text-foreground">{totalDuration} <span className="text-sm text-muted-foreground font-normal">min</span></span>
+                                <span className="font-bold text-2xl text-foreground">{Math.round(totalDuration)} <span className="text-sm text-muted-foreground font-normal">min</span></span>
                             </div>
                         </div>
 
@@ -122,7 +122,7 @@ export const WorkoutsView = ({
                                 <span className="text-xs font-bold text-primary/60 uppercase tracking-widest">Exercises</span>
                             </div>
                             <div className="stat-card p-5 rounded-3xl bg-orange-500/5 border-orange-500/10 flex flex-col items-center justify-center gap-2 hover:bg-orange-500/10 transition-colors">
-                                <span className="text-3xl font-bold text-orange-500">{totalCaloriesBurned}</span>
+                                <span className="text-3xl font-bold text-orange-500">{Math.round(totalCaloriesBurned)}</span>
                                 <span className="text-xs font-bold text-orange-500/60 uppercase tracking-widest">Calories</span>
                             </div>
                         </div>
@@ -191,7 +191,7 @@ export const WorkoutsView = ({
                                                 <td className="px-6 py-4 text-right font-medium text-orange-500">
                                                     {log.caloriesBurned ? Math.round(log.caloriesBurned) : '-'}
                                                 </td>
-                                                <td className="px-6 py-4 text-right font-medium">{log.durationMinutes || log.duration || 0} min</td>
+                                                <td className="px-6 py-4 text-right font-medium">{Math.round(log.durationMinutes || log.duration || 0)} min</td>
                                             </tr>
                                         ))
                                     )}

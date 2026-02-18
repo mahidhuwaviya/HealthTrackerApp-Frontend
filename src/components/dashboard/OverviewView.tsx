@@ -40,7 +40,7 @@ export const OverviewView = ({ data, targets }: OverviewViewProps & { targets: {
         activities.push({
             icon: Dumbbell,
             title: lastWorkout.exerciseName || lastWorkout.name || "Workout",
-            value: `${lastWorkout.durationMinutes || lastWorkout.duration || 0} min`,
+            value: `${Math.round(lastWorkout.durationMinutes || lastWorkout.duration || 0)} min`,
             time: "Today", // DTO has no timestamp for exercises yet
             color: "bg-primary/20 text-primary"
         });
@@ -106,9 +106,9 @@ export const OverviewView = ({ data, targets }: OverviewViewProps & { targets: {
                 <h2 className="text-xl font-bold mb-6 gradient-text">Today's Progress</h2>
                 <div className="grid grid-cols-[repeat(auto-fit,minmax(260px,1fr))] gap-6">
                     {[
-                        { icon: Droplets, label: "Water", current: waterCurrent, goal: waterGoal, unit: "ml", progress: 100, displayValue: `${waterCurrent.toLocaleString()}`, displayUnit: 'ml', href: "/dashboard/water" },
-                        { icon: Footprints, label: "Steps", current: stepsCurrent, goal: stepsGoal, unit: "", progress: stepsProgress, displayValue: stepsCurrent.toLocaleString(), displayUnit: '', href: "/dashboard/steps" },
-                        { icon: Flame, label: "Calories", current: caloriesCurrent, goal: caloriesGoal, unit: "", progress: caloriesProgress, displayValue: caloriesCurrent.toLocaleString(), displayUnit: '', href: "/dashboard/meals" },
+                        { icon: Droplets, label: "Water", current: waterCurrent, goal: waterGoal, unit: "ml", progress: 100, displayValue: `${Math.round(waterCurrent as number).toLocaleString()}`, displayUnit: 'ml', href: "/dashboard/water" },
+                        { icon: Footprints, label: "Steps", current: stepsCurrent, goal: stepsGoal, unit: "", progress: stepsProgress, displayValue: Math.round(stepsCurrent).toLocaleString(), displayUnit: '', href: "/dashboard/steps" },
+                        { icon: Flame, label: "Calories", current: caloriesCurrent, goal: caloriesGoal, unit: "", progress: caloriesProgress, displayValue: Math.round(caloriesCurrent).toLocaleString(), displayUnit: '', href: "/dashboard/meals" },
                         {
                             icon: Dumbbell,
                             label: "Workouts",
@@ -116,7 +116,7 @@ export const OverviewView = ({ data, targets }: OverviewViewProps & { targets: {
                             goal: workoutsGoal,
                             unit: "min",
                             progress: workoutsProgress,
-                            displayValue: hours > 0 ? `${hours}h ${minutes}m` : `${workoutsCurrent}`,
+                            displayValue: hours > 0 ? `${hours}h ${minutes}m` : `${Math.round(workoutsCurrent)}`,
                             displayUnit: hours > 0 ? '' : 'min',
                             href: "/dashboard/workouts"
                         },
