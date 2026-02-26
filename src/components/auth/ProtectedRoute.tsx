@@ -1,6 +1,6 @@
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
-import { Loader2 } from "lucide-react";
+import { GlassLoader } from "@/components/ui/GlassLoader";
 import { useEffect } from "react";
 
 interface ProtectedRouteProps {
@@ -19,12 +19,7 @@ export const ProtectedRoute = ({ component: Component, ...rest }: ProtectedRoute
     }, [isAuthenticated, isLoading, setLocation]);
 
     if (isLoading) {
-        return (
-            <div className="min-h-screen flex flex-col items-center justify-center bg-background">
-                <Loader2 className="h-10 w-10 animate-spin text-primary" />
-                <p className="mt-4 text-muted-foreground animate-pulse">Verifying session...</p>
-            </div>
-        );
+        return <GlassLoader state="fetching" message="Syncing Health Data..." />;
     }
 
     return isAuthenticated ? <Component {...rest} /> : null;

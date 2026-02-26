@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Instrument+Sans:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -296,5 +296,121 @@
   /* Inner glow effect */
   .inner-glow {
     box-shadow: inset 0 0 30px hsl(48 55% 60% / 0.1);
+  }
+
+  /* Nucleus Pulse Loader Styles */
+  .loader-container {
+    @apply fixed inset-0 z-[100] flex flex-col items-center justify-center;
+    background-color: #1A1A15;
+    transition: opacity 0.8s ease-in-out;
+  }
+
+  .nucleus-wrapper {
+    @apply relative w-64 h-64 flex items-center justify-center;
+    perspective: 1000px;
+  }
+
+  .nucleus-orb {
+    @apply w-24 h-24 rounded-full;
+    background: #D4C555;
+    box-shadow: 0 0 40px rgba(212, 197, 85, 0.6), inset 0 0 20px rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(12px);
+    animation: nucleus-breath 4s ease-in-out infinite;
+    z-index: 999;
+  }
+
+  .wireframe-mesh {
+    @apply absolute w-full h-full border border-primary/10 rounded-full;
+    transform-style: preserve-3d;
+    animation: wireframe-rotate 8s linear infinite;
+  }
+
+  .wireframe-mesh.processing {
+    animation: wireframe-rotate 2s linear infinite;
+    @apply border-primary/30;
+  }
+
+  .wireframe-mesh::before,
+  .wireframe-mesh::after {
+    content: '';
+    @apply absolute inset-0 border border-primary/10 rounded-full;
+  }
+
+  .wireframe-mesh::before {
+    transform: rotateX(70deg);
+  }
+
+  .wireframe-mesh::after {
+    transform: rotateY(70deg);
+  }
+
+  .nucleus-particles {
+    @apply absolute inset-0 pointer-events-none;
+  }
+
+  .golden-particle {
+    @apply absolute w-1.5 h-1.5 bg-primary/80 rounded-full;
+    box-shadow: 0 0 8px #D4C555;
+    animation: particle-emit 2s ease-out infinite;
+  }
+
+  .loading-text {
+    @apply mt-12 text-primary font-medium tracking-[0.4em] uppercase opacity-70 text-lg;
+    font-family: 'Instrument Sans', sans-serif;
+    text-shadow: 0 0 15px rgba(212, 197, 85, 0.5);
+  }
+
+  @keyframes nucleus-breath {
+
+    0%,
+    100% {
+      transform: scale(1);
+      opacity: 0.8;
+      box-shadow: 0 0 40px rgba(212, 197, 85, 0.6);
+    }
+
+    50% {
+      transform: scale(1.1);
+      opacity: 1;
+      box-shadow: 0 0 60px rgba(212, 197, 85, 0.8);
+    }
+  }
+
+  @keyframes wireframe-rotate {
+    0% {
+      transform: rotateX(0deg) rotateY(0deg) scale(0.9);
+      opacity: 0.2;
+    }
+
+    50% {
+      transform: rotateX(180deg) rotateY(180deg) scale(1.1);
+      opacity: 0.4;
+    }
+
+    100% {
+      transform: rotateX(360deg) rotateY(360deg) scale(0.9);
+      opacity: 0.2;
+    }
+  }
+
+  @keyframes particle-emit {
+    0% {
+      transform: translate(0, 0) scale(1);
+      opacity: 1;
+    }
+
+    100% {
+      transform: translate(var(--tx), var(--ty)) scale(0);
+      opacity: 0;
+    }
+  }
+
+  /* Global Suppression of Circular Motion */
+  .animate-spin,
+  .spinner,
+  .loader,
+  .loading-circle,
+  [class*="lucide-loader"] {
+    display: none !important;
   }
 }

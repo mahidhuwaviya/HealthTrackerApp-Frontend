@@ -3,6 +3,7 @@ export const API_ROUTES = {
         LOGIN: "/api/auth/userVerification",
         REGISTER: "/api/auth/userRegistration",
         GOOGLE_AUTH: "/oauth2/authorization/google",
+        FORGOT_PASSWORD: "/api/auth/forgetpassword",
         LOGOUT: "/api/logout",
     },
     USER: {
@@ -17,6 +18,7 @@ export const API_ROUTES = {
     },
     DASHBOARD: {
         SUMMARY: "/api/dashboard/summary/today",
+        SUMMARY_PARTICULAR: "/api/dashboard/summary/getParticularSummary",
     },
     MEALS: {
         LOG: "/api/meal/logMeal", // POST to log, GET to list today's

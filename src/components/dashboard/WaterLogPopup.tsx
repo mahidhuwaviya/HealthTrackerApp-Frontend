@@ -5,7 +5,8 @@ import { toast } from "sonner";
 import { waterApi } from "@/api/water";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { dashboardApi } from "@/api/dashboard"; // For fetching current state if needed, or pass prop
+import { dashboardApi } from "@/api/dashboard";
+import { GlassLoader } from "@/components/ui/GlassLoader";
 
 interface WaterLogPopupProps {
     isOpen: boolean;
@@ -38,9 +39,15 @@ export const WaterLogPopup = ({ isOpen, onClose, currentIntake: initialIntake, d
 
             queryClient.setQueryData(["dashboard-summary"], (old: any) => {
                 if (!old) return old;
+
+                // Fix: Handle both numeric and object structures for totalWaterToday
+                const currentTotal = typeof old.totalWaterToday === 'object' && old.totalWaterToday !== null
+                    ? (old.totalWaterToday.totalamountMl || 0)
+                    : (old.totalWaterToday || 0);
+
                 return {
                     ...old,
-                    totalWaterToday: (old.totalWaterToday || 0) + amount
+                    totalWaterToday: currentTotal + amount
                 };
             });
 

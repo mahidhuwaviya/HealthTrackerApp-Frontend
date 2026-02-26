@@ -9,7 +9,9 @@ import {
     DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { DashboardDTO } from "@/api/dashboard";
-
+import { useState } from "react";
+import { DateRangeSelector } from "./DateRangeSelector";
+import { useParticularSummary } from "@/hooks/useParticularSummary";
 interface StepsViewProps {
     targets: { steps: number };
     onOpenTargetModal: () => void;
@@ -26,7 +28,23 @@ export const StepsView = ({
     data
 }: StepsViewProps) => {
 
-    const steps = data?.walkingStats?.steps || 0;
+    const [period, setPeriod] = useState<"WEEKLY" | "MONTHLY" | "CUSTOM" | "">("");
+    const [customStartDate, setCustomStartDate] = useState<string>("");
+    const [customEndDate, setCustomEndDate] = useState<string>("");
+
+    const { data: particularData, loading } = useParticularSummary({
+        type: "STEPCOUNTER",
+        period: period as "WEEKLY" | "MONTHLY" | "CUSTOM",
+        customStartDate: period === "CUSTOM" ? customStartDate : undefined,
+        customEndDate: period === "CUSTOM" ? customEndDate : undefined,
+    });
+
+    // Use particular data if a period is selected, else fallback to today's data
+    const displayData = period && particularData
+        ? particularData.stepData
+        : data?.walkingStats;
+
+    const steps = displayData?.steps || 0;
     const progress = Math.min((steps / targets.steps) * 100, 100);
     const stepLogs = [];
 
@@ -55,7 +73,18 @@ export const StepsView = ({
                     </DropdownMenu>
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-8 relative z-10">
+                <div className="mb-6">
+                    <DateRangeSelector
+                        period={period as any}
+                        setPeriod={setPeriod as any}
+                        customStartDate={customStartDate}
+                        setCustomStartDate={setCustomStartDate}
+                        customEndDate={customEndDate}
+                        setCustomEndDate={setCustomEndDate}
+                    />
+                </div>
+
+                <div className={`grid md:grid-cols-2 gap-8 relative z-10 ${loading ? 'opacity-50' : ''}`}>
                     <div className="space-y-6">
                         <div className="p-8 rounded-3xl bg-secondary/30 border border-white/5 shadow-inner backdrop-blur-sm relative overflow-hidden group">
                             <div className="absolute inset-0 bg-steps/5 blur-xl group-hover:bg-steps/10 transition-colors duration-500" />
@@ -105,7 +134,7 @@ export const StepsView = ({
 
                         {/* Steps History Table */}
                         <div>
-                            <h3 className="text-lg font-bold mb-4">Today's Activity</h3>
+                            <h3 className="text-lg font-bold mb-4">{period ? 'Activity Log' : `Today's Activity`}</h3>
                             <div className="glass-card overflow-hidden">
                                 <div className="overflow-x-auto">
                                     <table className="w-full text-sm">

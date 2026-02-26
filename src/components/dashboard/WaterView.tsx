@@ -9,7 +9,10 @@ import {
     DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { DashboardDTO } from "@/api/dashboard";
-import { WaterTracker } from "./WaterTracker"; // Reuse the component here for the detailed view logic if applicable, OR use the popup logic? 
+import { useState } from "react";
+import { DateRangeSelector } from "./DateRangeSelector";
+import { useParticularSummary } from "@/hooks/useParticularSummary";
+import { WaterTracker } from "./WaterTracker";
 // User said: "It should not be in the dashboard page bu in the water intake component /page"
 // So WaterView should arguably use the WaterTracker component which has the "Log" buttons inside it?
 // OR does WaterView just show stats and have a "Log Water" button that opens the popup?
@@ -35,33 +38,40 @@ export const WaterView = ({
     data
 }: WaterViewProps) => {
 
-    // Assume waterIntake is in ml in backend, converted to oz or cups? 
-    // Profile says dailyWaterGoalMl but View shows "oz". 
-    // Let's assume the component handles display unit. 
-    // Quick fix: Use raw number for now or assume backend mimics frontend unit.
-    // If backend is Generic "waterIntake" (number). I will just display it.
+    const [period, setPeriod] = useState<"WEEKLY" | "MONTHLY" | "CUSTOM" | "">("");
+    const [customStartDate, setCustomStartDate] = useState<string>("");
+    const [customEndDate, setCustomEndDate] = useState<string>("");
 
-    const rawWater: any = data?.totalWaterToday;
+    const { data: particularData, loading } = useParticularSummary({
+        type: "WATER",
+        period: period as "WEEKLY" | "MONTHLY" | "CUSTOM",
+        customStartDate: period === "CUSTOM" ? customStartDate : undefined,
+        customEndDate: period === "CUSTOM" ? customEndDate : undefined,
+    });
+
+    const displayData = period && particularData
+        ? particularData.waterData
+        : data?.totalWaterToday;
+
+    const rawWater: any = displayData;
     const currentWater = (typeof rawWater === 'object' && rawWater !== null)
-        ? (rawWater.totalamountMl || rawWater.waterTotal || 0)
-        : (rawWater || data?.dailyLog?.waterIntake || 0);
-    const normalizedWaterLogs = (() => {
-        const potential = [
-            data?.waterLogs,
-            (rawWater as any)?.waterTotal, // Backend list location
-            (data as any)?.water_logs,
-            (data?.dailyLog as any)?.waterLogs
-        ];
-        const found = potential.find(logs => Array.isArray(logs)) || [];
+        ? (rawWater.totalamountMl || (Array.isArray(rawWater.waterTotal) ? rawWater.waterTotal.reduce((acc: number, curr: any) => acc + (curr.amount || curr.amountMl || 0), 0) : 0))
+        : (rawWater || 0);
 
-        // Map backend fields to frontend interface if needed
-        return found.map((log: any) => ({
-            id: log.id || log.waterLogId,
-            amount: log.amount || log.amountMl,
-            time: log.time || log.loggedAt, // Might need formatting if full date
-        }));
-    })();
-    const waterLogs = normalizedWaterLogs;
+    const waterLogsSource = period && particularData?.waterData?.waterTotal
+        ? particularData.waterData.waterTotal
+        : (!period && typeof rawWater === 'object' && rawWater?.waterTotal)
+            ? rawWater.waterTotal
+            : data?.waterLogs || (data as any)?.water_logs || [];
+
+    console.log("WATER LOGS DATA:", waterLogsSource);
+
+    const waterLogs = waterLogsSource.map((log: any) => ({
+        id: log.id || log.waterLogId,
+        amount: log.amount || log.amountMl,
+        logDate: log.logDate || "N/A",
+        logTime: log.logTime || "N/A",
+    }));
 
     const progress = Math.min((currentWater / targets.water) * 100, 100);
 
@@ -90,7 +100,18 @@ export const WaterView = ({
                     </DropdownMenu>
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-8 relative z-10">
+                <div className="mb-6">
+                    <DateRangeSelector
+                        period={period as any}
+                        setPeriod={setPeriod as any}
+                        customStartDate={customStartDate}
+                        setCustomStartDate={setCustomStartDate}
+                        customEndDate={customEndDate}
+                        setCustomEndDate={setCustomEndDate}
+                    />
+                </div>
+
+                <div className={`grid md:grid-cols-2 gap-8 relative z-10 ${loading ? 'opacity-50' : ''}`}>
                     <div className="flex flex-col items-center justify-center space-y-8 bg-secondary/30 rounded-3xl p-6 border border-white/5">
                         {/* Use the comprehensive WaterTracker component here */}
                         <div className="w-full">
@@ -126,13 +147,13 @@ export const WaterView = ({
 
                         {/* Recent Water Logs Table */}
                         <div>
-                            <h3 className="font-semibold text-lg mb-4">Today's Logs</h3>
+                            <h3 className="font-semibold text-lg mb-4">{period ? 'Hydration History' : `Today's Logs`}</h3>
                             <div className="glass-card overflow-hidden">
                                 <div className="overflow-x-auto">
                                     <table className="w-full text-sm">
                                         <thead className="bg-water/5">
                                             <tr>
-                                                <th className="px-5 py-3 text-left font-semibold text-water/80 uppercase tracking-wider text-xs border-b border-white/5">Time</th>
+                                                <th className="px-5 py-3 text-left font-semibold text-water/80 uppercase tracking-wider text-xs border-b border-white/5">Date / Time</th>
                                                 <th className="px-5 py-3 text-right font-semibold text-water/80 uppercase tracking-wider text-xs border-b border-white/5">Amount</th>
                                             </tr>
                                         </thead>
@@ -152,7 +173,7 @@ export const WaterView = ({
                                                         <td className="px-5 py-3 text-muted-foreground group-hover:text-foreground transition-colors">
                                                             <div className="flex items-center gap-2">
                                                                 <Clock className="w-3 h-3 text-water" />
-                                                                {log.time}
+                                                                {log.logDate} {log.logTime}
                                                             </div>
                                                         </td>
                                                         <td className="px-5 py-3 text-right font-medium">{log.amount} ml</td>

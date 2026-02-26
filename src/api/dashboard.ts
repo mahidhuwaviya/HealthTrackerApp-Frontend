@@ -31,7 +31,7 @@ export interface ExerciseEntry {
 }
 
 export interface WorkoutResponseDTO {
-    totalCaloriesBurned?: number;
+    caloriesBurned?: number;
     totalHrsWorkoutToday?: number;
     totalMinsWorkoutToday?: number;
     exerciseEntries?: ExerciseEntry[];
@@ -43,8 +43,10 @@ export interface WaterLogEntry {
     waterLogId?: number; // Backend field
     amount: number;
     amountMl?: number; // Backend field
-    time: string; // "HH:mm" or ISO
+    time?: string; // "HH:mm" or ISO
     loggedAt?: string; // Backend field
+    logDate?: string; // Backend field for dates
+    logTime: string; // Backend field for times
 }
 
 export interface WaterTotalDTO {
@@ -61,10 +63,38 @@ export interface DashboardDTO {
     walkingStats: WalkingLog;
 }
 
+export interface ParticularTimeRequestDTO {
+    type: "FOOD" | "WATER" | "STEPCOUNTER" | "EXERCISE" | "ALL" | "HEALTH";
+    period: "WEEKLY" | "MONTHLY" | "CUSTOM";
+    customStartDate?: string; // YYYY-MM-DD
+    customEndDate?: string; // YYYY-MM-DD
+}
+
+export interface MealResponseDTO {
+    date: string;
+    totalDailyCalories: number;
+    totalDailyProtein: number;
+    totalDailyCarbs: number;
+    totalDailyFats: number;
+    mealEntries: MealEntryDto[];
+}
+
+export interface ParticularTimeResponseDTO {
+    foodData?: MealResponseDTO;
+    waterData?: WaterTotalDTO;
+    stepData?: WalkingLog;
+    exerciseData?: WorkoutResponseDTO;
+    userData?: UserProfileData;
+}
+
 export const dashboardApi = {
     getSummary: async (): Promise<DashboardDTO> => {
         const response = await apiClient.get<DashboardDTO>(API_ROUTES.DASHBOARD.SUMMARY);
         console.log(response.data);
+        return response.data;
+    },
+    getParticularSummary: async (req: ParticularTimeRequestDTO): Promise<ParticularTimeResponseDTO> => {
+        const response = await apiClient.post<ParticularTimeResponseDTO>(API_ROUTES.DASHBOARD.SUMMARY_PARTICULAR, req);
         return response.data;
     }
 };

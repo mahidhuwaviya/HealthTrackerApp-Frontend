@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { jwtDecode } from "jwt-decode";
 import { API_ROUTES } from "@/api/endpoints";
+import { GlassLoader } from "@/components/ui/GlassLoader";
 
 const LoginPage = () => {
   const [, setLocation] = useLocation();
@@ -188,8 +189,9 @@ const LoginPage = () => {
       {/* Right side - Visual */}
       <LoginVisuals />
 
-
-
+      {isLoading && (
+        <GlassLoader state="fetching" message="Authenticating..." />
+      )}
     </div>
   );
 };

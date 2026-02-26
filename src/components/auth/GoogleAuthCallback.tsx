@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import { jwtDecode } from "jwt-decode";
+import { GlassLoader } from "@/components/ui/GlassLoader";
 
 export const GoogleAuthCallback = () => {
     const [, setLocation] = useLocation();
@@ -37,12 +38,5 @@ export const GoogleAuthCallback = () => {
         }
     }, [login, setLocation]);
 
-    return (
-        <div className="flex items-center justify-center min-h-screen bg-background">
-            <div className="text-center space-y-4">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-                <p className="text-lg text-muted-foreground">Processing Secure Login...</p>
-            </div>
-        </div>
-    );
+    return <GlassLoader state="fetching" message="Securing Connection..." />;
 };

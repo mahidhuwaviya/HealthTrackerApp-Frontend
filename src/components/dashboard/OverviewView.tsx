@@ -1,15 +1,16 @@
 import {
-    Zap,
-    Utensils,
-    Dumbbell,
-    Footprints,
-    Droplets,
-    Flame,
-    Heart
-} from "lucide-react";
+    MemoZap as Zap,
+    MemoUtensils as Utensils,
+    MemoDumbbell as Dumbbell,
+    MemoFootprints as Footprints,
+    MemoDroplets as Droplets,
+    MemoFlame as Flame,
+    MemoHeart as Heart
+} from "@/components/ui/MemoizedIcons";
 import { Link } from "wouter";
 import ProgressRing from "@/components/ui/ProgressRing";
 import { DashboardDTO } from "@/api/dashboard";
+import { HEALTH_DEFAULTS } from "@/config/health-constants";
 
 interface OverviewViewProps {
     data?: DashboardDTO;
@@ -33,15 +34,15 @@ export const OverviewView = ({ data, targets }: OverviewViewProps & { targets: {
 
     // Latest Workout
     const workoutLog = data?.workoutLog;
-    const exercisesList = workoutLog?.exerciseEntries || workoutLog?.exercises || [];
+    const exercisesList = workoutLog?.exercises || [];
 
     if (exercisesList.length > 0) {
         const lastWorkout = exercisesList[exercisesList.length - 1];
         activities.push({
             icon: Dumbbell,
             title: lastWorkout.exerciseName || lastWorkout.name || "Workout",
-            value: `${Math.round(lastWorkout.durationMinutes || lastWorkout.duration || 0)} min`,
-            time: "Today", // DTO has no timestamp for exercises yet
+            value: `${Math.round(lastWorkout.durationMinutes ?? lastWorkout.duration ?? 0)} min`,
+            time: "Today",
             color: "bg-primary/20 text-primary"
         });
     }
@@ -54,29 +55,31 @@ export const OverviewView = ({ data, targets }: OverviewViewProps & { targets: {
     // Metrics
     const rawWater: any = data?.totalWaterToday;
     const waterCurrent = (typeof rawWater === 'object' && rawWater !== null)
-        ? (rawWater.totalamountMl || rawWater.waterTotal || 0)
+        ? (rawWater.totalamountMl || (Array.isArray(rawWater.waterTotal) ? rawWater.waterTotal.reduce((acc: number, curr: any) => acc + (curr.amount || curr.amountMl || 0), 0) : 0))
         : (rawWater || 0);
-    const waterGoal = targets.water || 2000;
+    const waterGoal = targets.water || HEALTH_DEFAULTS.WATER_GOAL_ML;
     const waterProgress = waterGoal > 0 ? Math.min((waterCurrent / waterGoal) * 100, 100) : 0;
 
     const stepsCurrent = data?.walkingStats?.steps || 0;
-    const stepsGoal = targets.steps || 10000;
+    const stepsGoal = targets.steps || HEALTH_DEFAULTS.STEPS_GOAL;
     const stepsProgress = Math.min((stepsCurrent / stepsGoal) * 100, 100);
 
     const caloriesCurrent = data?.dailyLog?.totalDailyCalories || 0;
-    const caloriesGoal = targets.calories || 2000;
+    const caloriesGoal = targets.calories || HEALTH_DEFAULTS.CALORIES_GOAL;
     const caloriesProgress = Math.min((caloriesCurrent / caloriesGoal) * 100, 100);
 
     // Workout Metrics (New)
     // Calculate total duration from exercises list or use totalMinsWorkoutToday from backend
-    const workoutsCurrent = data?.workoutLog?.totalMinsWorkoutToday || exercisesList.reduce((acc, curr) => acc + (curr.durationMinutes || curr.duration || 0), 0) || 0;
-    const workoutsGoal = targets.workouts || 45;
-    const workoutsProgress = Math.min((workoutsCurrent / workoutsGoal) * 100, 100);
+    const workoutsCurrent = (data?.workoutLog?.totalMinsWorkoutToday ??
+        exercisesList.reduce((acc, curr) => acc + (curr.durationMinutes || curr.duration || 0), 0)) || 0;
+
+    const workoutsGoal = targets.workouts || HEALTH_DEFAULTS.WORKOUT_GOAL_MINS;
+    const workoutsProgress = workoutsGoal > 0 ? Math.min((workoutsCurrent / workoutsGoal) * 100, 100) : 0;
 
     // Format duration for display (e.g. 90 -> 1h 30m)
     const hours = Math.floor(workoutsCurrent / 60);
-    const minutes = workoutsCurrent % 60;
-    const workoutDisplayValue = hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`; // Simplified display logic or just always Hh Mm as requested? User asked for 1h 30m.
+    const minutes = Math.round(workoutsCurrent % 60);
+    const workoutDisplayValue = hours > 0 ? `${hours}h ${minutes}m` : `${Math.round(workoutsCurrent)}m`;
 
     return (
         <>

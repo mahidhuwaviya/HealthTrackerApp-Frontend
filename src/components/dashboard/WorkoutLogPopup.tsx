@@ -10,8 +10,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { Trash2, Plus, Loader2, Dumbbell } from 'lucide-react';
+import { MemoTrash2 as Trash2, MemoPlus as Plus, MemoDumbbell as Dumbbell } from '@/components/ui/MemoizedIcons';
 import { WorkoutType, ExerciseLog, workoutApi } from '@/api/workout';
+import { GlassLoader } from "@/components/ui/GlassLoader";
 import { useQueryClient } from '@tanstack/react-query';
 
 interface WorkoutLogPopupProps {
@@ -228,11 +229,6 @@ export const WorkoutLogPopup: React.FC<WorkoutLogPopupProps> = ({ isOpen, onClos
                                                 value={exercise.exerciseName}
                                                 onChange={(e) => handleSearchChange(exercise.id, e.target.value)}
                                             />
-                                            {exercise.isSearching && (
-                                                <div className="absolute right-3 top-2.5">
-                                                    <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                                                </div>
-                                            )}
                                         </div>
                                         {exercise.showResults && exercise.searchResults.length > 0 && (
                                             <ul className="absolute z-10 w-full bg-popover text-popover-foreground border rounded-md shadow-lg mt-1 max-h-60 overflow-auto top-[70px]">
@@ -243,7 +239,7 @@ export const WorkoutLogPopup: React.FC<WorkoutLogPopupProps> = ({ isOpen, onClos
                                                         onClick={() => selectExercise(exercise.id, result.name, result.imageUrl)}
                                                     >
                                                         <span>{result.name}</span>
-                                                        {result.imageUrl && <img src={result.imageUrl} alt="" className="w-8 h-8 object-cover rounded" />}
+                                                        {result.imageUrl && <img src={result.imageUrl} alt={result.name} loading="lazy" className="w-8 h-8 object-cover rounded" />}
                                                     </li>
                                                 ))}
                                             </ul>
@@ -302,12 +298,16 @@ export const WorkoutLogPopup: React.FC<WorkoutLogPopupProps> = ({ isOpen, onClos
                 </div>
 
                 <DialogFooter>
-                    <Button variant="outline" onClick={onClose} disabled={isSubmitting}>Cancel</Button>
+                    <Button variant="outline" onClick={onClose} disabled={isSubmitting}>
+                        Cancel
+                    </Button>
                     <Button onClick={handleSubmit} disabled={isSubmitting}>
-                        {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        Save Workout
+                        Save
                     </Button>
                 </DialogFooter>
+                {isSubmitting && (
+                    <GlassLoader state="processing" message="Recording Workout..." className="absolute inset-0 z-50 rounded-lg" />
+                )}
             </DialogContent>
         </Dialog>
     );

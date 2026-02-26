@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { foodApi, MealEntryDto } from '@/api/food';
-import { Loader2 } from 'lucide-react';
+import { GlassLoader } from "@/components/ui/GlassLoader";
 import { useQueryClient } from '@tanstack/react-query';
 
 
@@ -123,6 +123,9 @@ export const MealEntryPopup: React.FC<MealEntryPopupProps> = ({ isOpen, onClose 
 
         setIsSubmitting(true);
         try {
+            // Add a small delay for the processing animation to be visible
+            await new Promise(resolve => setTimeout(resolve, 2000));
+
             await foodApi.addMeal({
                 foodName: selectedFood,
                 quantity,
@@ -167,7 +170,7 @@ export const MealEntryPopup: React.FC<MealEntryPopupProps> = ({ isOpen, onClose 
                         />
                         {isSearching && (
                             <div className="absolute right-3 top-9">
-                                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                                <span className="text-xs text-primary/40 animate-pulse font-instrument">SEARCHING...</span>
                             </div>
                         )}
                         {showResults && searchResults.length > 0 && (
@@ -231,10 +234,12 @@ export const MealEntryPopup: React.FC<MealEntryPopupProps> = ({ isOpen, onClose 
                         Cancel
                     </Button>
                     <Button onClick={handleSubmit} disabled={isSubmitting}>
-                        {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                         Save
                     </Button>
                 </DialogFooter>
+                {isSubmitting && (
+                    <GlassLoader state="processing" message="Processing Transaction..." className="absolute inset-0 z-50 rounded-lg" />
+                )}
             </DialogContent>
         </Dialog>
     );

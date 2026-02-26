@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, Droplets, Minus } from "lucide-react";
 import { toast } from "sonner"; // Assuming sonner is used, or maybe generic toast
 import { waterApi } from "../../api/water";
+import { GlassLoader } from "@/components/ui/GlassLoader";
 
 interface WaterTrackerProps {
     currentIntake: number;
@@ -49,6 +50,9 @@ export const WaterTracker = ({ currentIntake, dailyGoal, userEmail }: WaterTrack
             queryClient.invalidateQueries({ queryKey: ["user-stats"] });
         },
     });
+
+    const isFetching = queryClient.isFetching({ queryKey: ["dashboard-summary"] }) > 0;
+    const showLoader = isPending || isFetching;
 
     const handleQuickAdd = (amount: number) => {
         logWater(amount);
@@ -135,6 +139,7 @@ export const WaterTracker = ({ currentIntake, dailyGoal, userEmail }: WaterTrack
                     </form>
                 </div>
             </div>
+            {showLoader && <GlassLoader state="processing" message="Syncing with Database..." />}
         </div>
     );
 };

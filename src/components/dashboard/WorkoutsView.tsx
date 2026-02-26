@@ -9,7 +9,9 @@ import {
     DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { DashboardDTO } from "@/api/dashboard";
-
+import { useState } from "react";
+import { DateRangeSelector } from "./DateRangeSelector";
+import { useParticularSummary } from "@/hooks/useParticularSummary";
 interface WorkoutsViewProps {
     targets: { workouts: number };
     onOpenTargetModal: () => void;
@@ -28,12 +30,27 @@ export const WorkoutsView = ({
     onLogWorkout
 }: WorkoutsViewProps) => {
 
-    const workoutData = data?.workoutLog;
-    const exercises = workoutData?.exerciseEntries || [];
+    const [period, setPeriod] = useState<"WEEKLY" | "MONTHLY" | "CUSTOM" | "">("");
+    const [customStartDate, setCustomStartDate] = useState<string>("");
+    const [customEndDate, setCustomEndDate] = useState<string>("");
+
+    const { data: particularData, loading } = useParticularSummary({
+        type: "EXERCISE",
+        period: period as "WEEKLY" | "MONTHLY" | "CUSTOM",
+        customStartDate: period === "CUSTOM" ? customStartDate : undefined,
+        customEndDate: period === "CUSTOM" ? customEndDate : undefined,
+    });
+
+    const displayData = period && particularData
+        ? particularData.exerciseData
+        : data?.workoutLog;
+
+    const workoutData = displayData;
+    const exercises = (workoutData as any)?.exerciseEntries || (workoutData as any)?.exercises || [];
     const workoutsCount = exercises.length;
 
     // Calculate totals if not provided.
-    const totalCaloriesBurned = workoutData?.totalCaloriesBurned || 0;
+    const totalCaloriesBurned = workoutData?.caloriesBurned || 0;
 
     // Calculate duration from exercises
     const totalDuration = exercises.reduce((acc, log) => acc + (log.durationMinutes || log.duration || 0), 0);
@@ -66,7 +83,18 @@ export const WorkoutsView = ({
                     </DropdownMenu>
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-8 relative z-10">
+                <div className="mb-6">
+                    <DateRangeSelector
+                        period={period as any}
+                        setPeriod={setPeriod as any}
+                        customStartDate={customStartDate}
+                        setCustomStartDate={setCustomStartDate}
+                        customEndDate={customEndDate}
+                        setCustomEndDate={setCustomEndDate}
+                    />
+                </div>
+
+                <div className={`grid md:grid-cols-2 gap-8 relative z-10 ${loading ? 'opacity-50' : ''}`}>
                     {/* Ring Section */}
                     <div className="flex flex-col items-center justify-center p-6 bg-secondary/30 rounded-3xl border border-white/5 shadow-inner">
                         {(() => {
@@ -137,10 +165,10 @@ export const WorkoutsView = ({
                 </div>
             </div>
 
-            <div className="space-y-6 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
+            <div className={`space-y-6 animate-fade-in-up ${loading ? 'opacity-50' : ''}`} style={{ animationDelay: '0.1s' }}>
                 <div>
                     <div className="flex items-center justify-between mb-6">
-                        <h3 className="text-xl font-bold gradient-text">Today's Exercises</h3>
+                        <h3 className="text-xl font-bold gradient-text">{period ? 'Workout History' : `Today's Exercises`}</h3>
 
                         {/* Optional Toggle if needed later
                         <div className="flex gap-2 bg-secondary/50 p-1 rounded-lg">
@@ -183,15 +211,15 @@ export const WorkoutsView = ({
                                                         <div className="w-8 h-8 rounded-lg bg-secondary/50 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
                                                             <Dumbbell className="w-4 h-4" />
                                                         </div>
-                                                        {log.exerciseName || log.name}
+                                                        {log.exerciseName || log.name || "Workout"}
                                                     </div>
                                                 </td>
-                                                <td className="px-6 py-4 text-right text-muted-foreground">{log.sets}</td>
-                                                <td className="px-6 py-4 text-right text-muted-foreground">{log.reps}</td>
+                                                <td className="px-6 py-4 text-right text-muted-foreground">{log.sets || 0}</td>
+                                                <td className="px-6 py-4 text-right text-muted-foreground">{log.reps || 0}</td>
                                                 <td className="px-6 py-4 text-right font-medium text-orange-500">
                                                     {log.caloriesBurned ? Math.round(log.caloriesBurned) : '-'}
                                                 </td>
-                                                <td className="px-6 py-4 text-right font-medium">{Math.round(log.durationMinutes || log.duration || 0)} min</td>
+                                                <td className="px-6 py-4 text-right font-medium">{Math.round(log.durationMinutes ?? log.duration ?? 0)} min</td>
                                             </tr>
                                         ))
                                     )}

@@ -54,6 +54,7 @@ export const HeroSection = () => {
                             <img
                                 src={heroImage}
                                 alt="Fitness athlete"
+                                loading="lazy"
                                 className="rounded-3xl shadow-2xl animate-float"
                             />
                             <div className="absolute -inset-1 rounded-3xl bg-gradient-to-r from-primary/20 to-accent/20 blur-xl -z-10" />

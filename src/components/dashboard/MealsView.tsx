@@ -10,7 +10,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { DashboardDTO } from "@/api/dashboard";
 import { useState } from "react";
-
+import { DateRangeSelector } from "./DateRangeSelector";
+import { useParticularSummary } from "@/hooks/useParticularSummary";
 interface MealsViewProps {
     targets: { calories: number };
     onOpenTargetModal: () => void;
@@ -30,17 +31,30 @@ export const MealsView = ({
     data
 }: MealsViewProps) => {
 
-    const dailyLog = data?.dailyLog;
-    const mealLogs = data?.dailyLog?.todaysMeals || [];
-    console.log(mealLogs);
+    const [period, setPeriod] = useState<"WEEKLY" | "MONTHLY" | "CUSTOM" | "">("");
+    const [customStartDate, setCustomStartDate] = useState<string>("");
+    const [customEndDate, setCustomEndDate] = useState<string>("");
 
-    const caloriesConsumed = dailyLog?.totalDailyCalories || 0;
+    const { data: particularData, loading } = useParticularSummary({
+        type: "FOOD",
+        period: period as "WEEKLY" | "MONTHLY" | "CUSTOM",
+        customStartDate: period === "CUSTOM" ? customStartDate : undefined,
+        customEndDate: period === "CUSTOM" ? customEndDate : undefined,
+    });
+
+    const displayData = period && particularData
+        ? particularData.foodData
+        : data?.dailyLog;
+
+    const mealLogs = (displayData as any)?.mealEntries || (displayData as any)?.todaysMeals || [];
+
+    const caloriesConsumed = (displayData as any)?.totalDailyCalories || 0;
     const progress = Math.min((caloriesConsumed / targets.calories) * 100, 100);
 
     const macros = [
-        { label: "Protein", value: Math.round(dailyLog?.totalDailyProtein || 0), unit: "g", color: "bg-blue-500" },
-        { label: "Carbs", value: Math.round(dailyLog?.totalDailyCarbs || 0), unit: "g", color: "bg-green-500" },
-        { label: "Fats", value: Math.round(dailyLog?.totalDailyFats || 0), unit: "g", color: "bg-yellow-500" },
+        { label: "Protein", value: Math.round((displayData as any)?.totalDailyProtein || 0), unit: "g", color: "bg-blue-500" },
+        { label: "Carbs", value: Math.round((displayData as any)?.totalDailyCarbs || 0), unit: "g", color: "bg-green-500" },
+        { label: "Fats", value: Math.round((displayData as any)?.totalDailyFats || 0), unit: "g", color: "bg-yellow-500" },
     ];
 
     return (
@@ -70,7 +84,18 @@ export const MealsView = ({
                     </DropdownMenu>
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-8 relative z-10">
+                <div className="mb-6">
+                    <DateRangeSelector
+                        period={period as any}
+                        setPeriod={setPeriod as any}
+                        customStartDate={customStartDate}
+                        setCustomStartDate={setCustomStartDate}
+                        customEndDate={customEndDate}
+                        setCustomEndDate={setCustomEndDate}
+                    />
+                </div>
+
+                <div className={`grid md:grid-cols-2 gap-8 relative z-10 ${loading ? 'opacity-50' : ''}`}>
                     <div className="space-y-6">
                         {/* Calories Progress */}
                         <div className="p-6 rounded-3xl bg-secondary/30 border border-white/5 shadow-inner backdrop-blur-sm">
@@ -155,7 +180,7 @@ export const MealsView = ({
 
                         {/* Recent Meals Table */}
                         <div>
-                            <h3 className="text-lg font-bold mb-4">Today's Meals</h3>
+                            <h3 className="text-lg font-bold mb-4">{period ? 'Meal History' : `Today's Meals`}</h3>
                             <div className="glass-card overflow-hidden">
                                 <div className="overflow-x-auto">
                                     <table className="w-full text-sm">

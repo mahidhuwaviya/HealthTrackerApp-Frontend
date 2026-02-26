@@ -4,11 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { LoginRequest } from "@/api/auth";
+import { LoginRequest, RegisterRequest } from "@/api/auth";
+import { toast } from "sonner";
+import { AUTH_VALIDATION, UI_STRINGS } from "@/config/health-constants";
 
 interface LoginFormProps {
     isLogin: boolean;
-    onSubmit: (data: LoginRequest) => void;
+    onSubmit: (data: any) => void;
     isLoading?: boolean;
 }
 
@@ -18,13 +20,25 @@ export const LoginForm = ({ isLogin, onSubmit, isLoading = false }: LoginFormPro
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
 
+    // Validation
+    const isEmailValid = AUTH_VALIDATION.EMAIL_REGEX.test(email);
+    const isPasswordValid = password.length >= AUTH_VALIDATION.MIN_PASSWORD_LENGTH;
+    const isNameValid = isLogin ? true : name.trim().length > 0;
+    const isFormValid = isEmailValid && isPasswordValid && isNameValid;
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        if (!isFormValid) return;
         onSubmit({
             email,
             password,
             ...(!isLogin && { name })
         });
+    };
+
+    const handleForgotPassword = (e: React.MouseEvent) => {
+        e.preventDefault();
+        toast.info(UI_STRINGS.AUTH.FORGOT_PASSWORD_TOAST);
     };
 
     return (
@@ -64,7 +78,11 @@ export const LoginForm = ({ isLogin, onSubmit, isLoading = false }: LoginFormPro
                 <div className="flex items-center justify-between">
                     <Label htmlFor="password">Password</Label>
                     {isLogin && (
-                        <a href="#" className="text-sm text-primary hover:underline">
+                        <a
+                            href="#"
+                            onClick={handleForgotPassword}
+                            className="text-sm text-primary hover:underline transition-colors"
+                        >
                             Forgot password?
                         </a>
                     )}
@@ -100,8 +118,11 @@ export const LoginForm = ({ isLogin, onSubmit, isLoading = false }: LoginFormPro
 
             <Button
                 type="submit"
-                disabled={isLoading}
-                className="w-full py-6 btn-glow bg-primary text-primary-foreground hover:bg-primary/90 text-lg"
+                disabled={isLoading || !isFormValid}
+                className={`w-full py-6 btn-glow text-lg transition-all duration-300 ${!isFormValid
+                        ? "bg-secondary text-muted-foreground cursor-not-allowed opacity-50"
+                        : "bg-primary text-primary-foreground hover:bg-primary/90"
+                    }`}
             >
                 {isLoading ? (
                     "Please wait..."

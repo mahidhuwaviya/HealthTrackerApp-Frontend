@@ -26,8 +26,19 @@ const ProgressRing = ({
       <svg
         width={size}
         height={size}
-        className="progress-ring"
+        className="progress-ring overflow-visible"
       >
+        <defs>
+          <radialGradient id="ring-glow" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+            <stop offset="0%" stopColor="#D4C555" stopOpacity="1" />
+            <stop offset="100%" stopColor="#D4C555" stopOpacity="0.4" />
+          </radialGradient>
+          <filter id="inner-glow">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="blur" />
+            <feComposite in="SourceGraphic" in2="blur" operator="over" />
+          </filter>
+        </defs>
+
         {/* Background circle */}
         <circle
           stroke={bgColor}
@@ -36,20 +47,23 @@ const ProgressRing = ({
           r={radius}
           cx={size / 2}
           cy={size / 2}
+          className="opacity-20"
         />
-        {/* Progress circle */}
+
+        {/* Progress circle with Glow */}
         <circle
-          stroke={color}
+          stroke="url(#ring-glow)"
           strokeWidth={strokeWidth}
           strokeLinecap="round"
           fill="transparent"
           r={radius}
           cx={size / 2}
           cy={size / 2}
-          className="progress-ring-circle"
+          className="progress-ring-circle transition-all duration-700 ease-out"
           style={{
             strokeDasharray: circumference,
             strokeDashoffset: offset,
+            filter: "drop-shadow(0 0 8px #D4C555)",
           }}
         />
       </svg>
