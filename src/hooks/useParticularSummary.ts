@@ -1,30 +1,18 @@
-import { useState, useEffect } from 'react';
 import { dashboardApi, ParticularTimeRequestDTO, ParticularTimeResponseDTO } from '@/api/dashboard';
+import { useQuery } from '@tanstack/react-query';
 
 export const useParticularSummary = (req: ParticularTimeRequestDTO) => {
-    const [data, setData] = useState<ParticularTimeResponseDTO | null>(null);
-    const [loading, setLoading] = useState<boolean>(false);
-    const [error, setError] = useState<string | null>(null);
+    const query = useQuery<ParticularTimeResponseDTO, Error>({
+        queryKey: ["particular-summary", req.type, req.period, req.customStartDate, req.customEndDate],
+        queryFn: () => dashboardApi.getParticularSummary(req),
+        enabled: !!req.period,
+        staleTime: 0, // Always refetch when invalidated
+        refetchOnWindowFocus: true
+    });
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                setLoading(true);
-                setError(null);
-                const response = await dashboardApi.getParticularSummary(req);
-                setData(response);
-            } catch (err: any) {
-                console.error("Error fetching particular summary", err);
-                setError(err.message || "Failed to fetch summary data");
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        if (req.period) {
-            fetchData();
-        }
-    }, [req.type, req.period, req.customStartDate, req.customEndDate]);
-
-    return { data, loading, error };
+    return {
+        data: query.data || null,
+        loading: query.isLoading,
+        error: query.error?.message || null
+    };
 };

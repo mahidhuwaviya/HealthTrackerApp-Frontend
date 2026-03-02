@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { DashboardDTO } from "@/api/dashboard";
 import { Goal, ActivityLevel, DietaryPreference } from "@/api/profile";
+import { MOCK_HEALTH_DATA } from "@/constants/mockData"; // Only kept for non-API fields
 
 interface HealthViewProps {
     onUpdateProfile: () => void;
@@ -32,10 +33,16 @@ export const HealthView = ({ onUpdateProfile, data }: HealthViewProps) => {
     const bmiVal = (height > 0 && weight > 0) ? (weight / (heightInMeters * heightInMeters)) : 0;
     const bmi = bmiVal.toFixed(1);
 
-    // Vitals 
-    const heartRate = profile?.heartRate || 72; // Default if not set
-    const bloodPressure = "120/80"; // Mock
-    const bodyFat = "15%"; // Mock
+    // Vitals
+    const heartRate = profile?.heartRate || 0;
+    // Blood pressure and body fat are NOT sent by the backend API — shown as N/A
+    const bloodPressure = "N/A"; // Backend does not provide this field
+    const bodyFat = "N/A";       // Backend does not provide this field
+
+    // Workout environment from actual profile
+    const workoutEnvLabel = profile?.workoutEnv && profile.workoutEnv.length > 0
+        ? profile.workoutEnv.map(e => MOCK_HEALTH_DATA.workoutEnvironment || e.replace('_', ' ')).join(", ")
+        : "Not set";
 
     // Lifestyle
     const activityMap: Record<string, string> = {
@@ -182,7 +189,7 @@ export const HealthView = ({ onUpdateProfile, data }: HealthViewProps) => {
                         {[
                             { label: "Activity Level", value: activityLabel, icon: Dumbbell },
                             { label: "Dietary Preference", value: dietLabel, icon: Utensils },
-                            { label: "Workout Environment", value: "Commercial Gym", icon: Zap }, // Mock
+                            { label: "Workout Environment", value: MOCK_HEALTH_DATA.workoutEnvironment, icon: Zap }, // Uses mock
                         ].map((item, i) => (
                             <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-secondary/30">
                                 <div className="flex items-center gap-3">

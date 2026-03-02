@@ -300,7 +300,7 @@
 
   /* Nucleus Pulse Loader Styles */
   .loader-container {
-    @apply fixed inset-0 z-[100] flex flex-col items-center justify-center;
+    @apply fixed inset-0 z-50 flex flex-col items-center justify-center;
     background-color: #1A1A15;
     transition: opacity 0.8s ease-in-out;
   }
@@ -316,7 +316,7 @@
     box-shadow: 0 0 40px rgba(212, 197, 85, 0.6), inset 0 0 20px rgba(255, 255, 255, 0.4);
     backdrop-filter: blur(12px);
     animation: nucleus-breath 4s ease-in-out infinite;
-    z-index: 999;
+    z-index: 50;
   }
 
   .wireframe-mesh {

@@ -32,9 +32,21 @@ export interface ExerciseSearchResult {
     imageUrl?: string; // Optional image/gif url if available
 }
 
+export interface ExerciseDeleteRequest {
+    id: number;
+    workoutType: string;
+    logTime: string;
+    exerciseName: string;
+    gifUrl?: string;
+    sets: number;
+    reps: number;
+    weightKg: number;
+    durationMinutes: number;
+    caloriesBurned: number;
+}
+
 export const workoutApi = {
     searchExercises: async (query: string): Promise<ExerciseSearchResult[]> => {
-        // Backend expects ?name={value}
         const response = await apiClient.get<ExerciseSearchResult[]>(API_ROUTES.WORKOUTS.SEARCH, {
             params: { name: query }
         });
@@ -44,5 +56,11 @@ export const workoutApi = {
     logWorkout: async (data: WorkoutLogRequest) => {
         const response = await apiClient.post(API_ROUTES.WORKOUTS.LOG, data);
         return response.data;
+    },
+
+    deleteExercise: async (payload: any): Promise<void> => {
+        await apiClient.delete(API_ROUTES.WORKOUTS.DELETE, {
+            data: payload
+        });
     }
 };

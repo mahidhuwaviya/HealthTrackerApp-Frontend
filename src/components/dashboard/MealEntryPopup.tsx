@@ -135,6 +135,7 @@ export const MealEntryPopup: React.FC<MealEntryPopupProps> = ({ isOpen, onClose 
             toast.success("Meal logged successfully");
 
             queryClient.invalidateQueries({ queryKey: ["dashboard-summary"] });
+            queryClient.invalidateQueries({ queryKey: ["particular-summary"] });
             queryClient.invalidateQueries({ queryKey: ["today-logs"] });
             queryClient.invalidateQueries({ queryKey: ["user-stats"] });
 

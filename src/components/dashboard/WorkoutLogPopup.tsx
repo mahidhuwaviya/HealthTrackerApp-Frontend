@@ -147,6 +147,7 @@ export const WorkoutLogPopup: React.FC<WorkoutLogPopupProps> = ({ isOpen, onClos
             toast.success("Workout logged successfully!");
 
             queryClient.invalidateQueries({ queryKey: ["dashboard-summary"] });
+            queryClient.invalidateQueries({ queryKey: ["particular-summary"] });
             queryClient.invalidateQueries({ queryKey: ["today-logs"] });
             queryClient.invalidateQueries({ queryKey: ["user-stats"] });
 
@@ -163,7 +164,7 @@ export const WorkoutLogPopup: React.FC<WorkoutLogPopupProps> = ({ isOpen, onClos
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+            <DialogContent className="max-w-4xl max-h-[80dvh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                         <Dumbbell className="w-5 h-5 text-primary" /> Log Workout

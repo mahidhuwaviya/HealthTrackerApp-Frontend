@@ -46,6 +46,7 @@ export const WaterTracker = ({ currentIntake, dailyGoal, userEmail }: WaterTrack
         onSettled: () => {
             // Always refetch after error or success:
             queryClient.invalidateQueries({ queryKey: ["dashboard-summary"] });
+            queryClient.invalidateQueries({ queryKey: ["particular-summary"] });
             queryClient.invalidateQueries({ queryKey: ["today-logs"] });
             queryClient.invalidateQueries({ queryKey: ["user-stats"] });
         },

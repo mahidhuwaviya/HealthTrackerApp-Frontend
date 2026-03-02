@@ -10,7 +10,7 @@ export const useDashboardData = () => {
         queryKey: ["dashboard-summary"], // Centralized key for dashboard summary
         queryFn: dashboardApi.getSummary,
         enabled: !!user, // Only fetch if user is authenticated
-        staleTime: 1000 * 60 * 5, // 5 minutes
+        staleTime: 0, // Always refetch when invalidated
         refetchOnWindowFocus: true,
     });
 };

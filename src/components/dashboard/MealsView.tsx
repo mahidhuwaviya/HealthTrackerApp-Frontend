@@ -1,4 +1,4 @@
-import { Utensils, MoreHorizontal, Clock } from "lucide-react";
+import { Utensils, MoreHorizontal, Clock, Trash2 } from "lucide-react";
 // import { WeeklyProgressChart } from "@/components/dashboard/DashboardCharts";
 import { Button } from "@/components/ui/button";
 import ProgressRing from "@/components/ui/ProgressRing";
@@ -12,6 +12,11 @@ import { DashboardDTO } from "@/api/dashboard";
 import { useState } from "react";
 import { DateRangeSelector } from "./DateRangeSelector";
 import { useParticularSummary } from "@/hooks/useParticularSummary";
+import { computeScaledGoal } from "@/utils/periodGoal";
+import { foodApi } from "@/api/food";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { HEALTH_DEFAULTS } from "@/config/health-constants";
 interface MealsViewProps {
     targets: { calories: number };
     onOpenTargetModal: () => void;
@@ -31,39 +36,65 @@ export const MealsView = ({
     data
 }: MealsViewProps) => {
 
-    const [period, setPeriod] = useState<"WEEKLY" | "MONTHLY" | "CUSTOM" | "">("");
+    const queryClient = useQueryClient();
+
+    const [period, setPeriod] = useState<"TODAY" | "WEEKLY" | "MONTHLY" | "CUSTOM" | "">("TODAY");
     const [customStartDate, setCustomStartDate] = useState<string>("");
     const [customEndDate, setCustomEndDate] = useState<string>("");
+    const [deletingId, setDeletingId] = useState<number | null>(null);
 
     const { data: particularData, loading } = useParticularSummary({
         type: "FOOD",
-        period: period as "WEEKLY" | "MONTHLY" | "CUSTOM",
+        period: period as any,
         customStartDate: period === "CUSTOM" ? customStartDate : undefined,
         customEndDate: period === "CUSTOM" ? customEndDate : undefined,
     });
 
-    const displayData = period && particularData
-        ? particularData.foodData
-        : data?.dailyLog;
+    const isValidFoodData = particularData?.foodData && Object.keys(particularData.foodData).length > 0;
+
+    const displayData = period === "TODAY"
+        ? (isValidFoodData ? particularData.foodData : data?.dailyLog)
+        : (period && particularData ? particularData.foodData : data?.dailyLog);
 
     const mealLogs = (displayData as any)?.mealEntries || (displayData as any)?.todaysMeals || [];
 
-    const caloriesConsumed = (displayData as any)?.totalDailyCalories || 0;
-    const progress = Math.min((caloriesConsumed / targets.calories) * 100, 100);
+    // Dynamic scaled goal: multiply base daily target by days in the period
+    const baseCalorieGoal = targets.calories || data?.profile?.dailyCalorieTarget || data?.profile?.targetDailyCalorie || 0;
+    const scaledCalorieGoal = computeScaledGoal(baseCalorieGoal, period, customStartDate, customEndDate);
+
+    // Actual: sum calories from table rows for accuracy
+    const caloriesConsumed = mealLogs.reduce((sum: number, m: any) => sum + (m.calories || 0), 0)
+        || (displayData as any)?.totalDailyCalories || 0;
+    const progress = scaledCalorieGoal > 0 ? Math.min((caloriesConsumed / scaledCalorieGoal) * 100, 100) : 0;
 
     const macros = [
-        { label: "Protein", value: Math.round((displayData as any)?.totalDailyProtein || 0), unit: "g", color: "bg-blue-500" },
-        { label: "Carbs", value: Math.round((displayData as any)?.totalDailyCarbs || 0), unit: "g", color: "bg-green-500" },
-        { label: "Fats", value: Math.round((displayData as any)?.totalDailyFats || 0), unit: "g", color: "bg-yellow-500" },
+        { label: "Protein", value: Math.round(mealLogs.reduce((s: number, m: any) => s + (m.protein || 0), 0) || (displayData as any)?.totalDailyProtein || 0), unit: "g", color: "bg-blue-500" },
+        { label: "Carbs", value: Math.round(mealLogs.reduce((s: number, m: any) => s + (m.carbs || 0), 0) || (displayData as any)?.totalDailyCarbs || 0), unit: "g", color: "bg-green-500" },
+        { label: "Fats", value: Math.round(mealLogs.reduce((s: number, m: any) => s + (m.fats || 0), 0) || (displayData as any)?.totalDailyFats || 0), unit: "g", color: "bg-yellow-500" },
     ];
+
+    const handleDeleteMeal = async (meal: any) => {
+        if (!meal?.mealEntryId) return;
+        setDeletingId(meal.mealEntryId);
+        try {
+            await foodApi.deleteMeal(meal);
+            toast.success("Meal entry deleted");
+            queryClient.invalidateQueries({ queryKey: ["dashboard-summary"] });
+            queryClient.invalidateQueries({ queryKey: ["particular-summary"] });
+        } catch {
+            toast.error("Failed to delete meal entry");
+        } finally {
+            setDeletingId(null);
+        }
+    };
 
     return (
         <div className="space-y-6">
             {/* Main Stats Card */}
             <div className="p-6 md:p-8 glass-card inner-glow relative overflow-hidden">
                 {/* Ambient Background */}
-                <div className="absolute -top-24 -left-24 w-64 h-64 bg-calories/10 rounded-full blur-3xl point-events-none" />
-                <div className="absolute top-1/2 right-0 w-48 h-48 bg-yellow-500/5 rounded-full blur-3xl point-events-none" />
+                <div className="absolute -top-24 -left-24 w-64 h-64 bg-calories/10 rounded-full blur-3xl pointer-events-none" />
+                <div className="absolute top-1/2 right-0 w-48 h-48 bg-yellow-500/5 rounded-full blur-3xl pointer-events-none" />
 
                 <div className="flex items-center justify-between mb-8 relative z-10">
                     <h2 className="text-2xl font-bold flex items-center gap-3 gradient-text">
@@ -102,7 +133,7 @@ export const MealsView = ({
                             <div className="flex items-center justify-between text-sm mb-4">
                                 <div className="flex flex-col">
                                     <span className="text-muted-foreground text-xs uppercase tracking-wider font-semibold">Goal</span>
-                                    <span className="font-bold text-xl">{targets.calories}</span>
+                                    <span className="font-bold text-xl">{Math.round(scaledCalorieGoal)}</span>
                                 </div>
                                 <div className="text-right flex flex-col items-end">
                                     <span className="text-muted-foreground text-xs uppercase tracking-wider font-semibold">Eaten</span>
@@ -151,24 +182,7 @@ export const MealsView = ({
                         <div>
                             <div className="flex items-center justify-between mb-4">
                                 <h3 className="text-lg font-bold">Weekly Intake</h3>
-                                <div className="flex gap-2 bg-secondary/50 p-1 rounded-lg">
-                                    <Button
-                                        variant={chartTimeRange === "weekly" ? "secondary" : "ghost"}
-                                        size="sm"
-                                        className={`h-8 rounded-md text-xs font-medium ${chartTimeRange === "weekly" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
-                                        onClick={() => setChartTimeRange("weekly")}
-                                    >
-                                        Weekly
-                                    </Button>
-                                    <Button
-                                        variant={chartTimeRange === "monthly" ? "secondary" : "ghost"}
-                                        size="sm"
-                                        className={`h-8 rounded-md text-xs font-medium ${chartTimeRange === "monthly" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
-                                        onClick={() => setChartTimeRange("monthly")}
-                                    >
-                                        Monthly
-                                    </Button>
-                                </div>
+
                             </div>
                             {/* <WeeklyProgressChart
                                 // Mock data for chart - backend API likely needed for specific chart data if not in summary
@@ -180,7 +194,33 @@ export const MealsView = ({
 
                         {/* Recent Meals Table */}
                         <div>
-                            <h3 className="text-lg font-bold mb-4">{period ? 'Meal History' : `Today's Meals`}</h3>
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-lg font-bold">
+                                    {(() => {
+                                        switch (period) {
+                                            case "TODAY":
+                                            case "":
+                                                return "Showing data for Today";
+                                            case "WEEKLY": {
+                                                const now = new Date();
+                                                const dayOfWeek = now.getDay() === 0 ? 6 : now.getDay() - 1;
+                                                const lastMonday = new Date(now);
+                                                lastMonday.setDate(now.getDate() - dayOfWeek);
+                                                return `Data from ${lastMonday.toLocaleDateString()} to ${now.toLocaleDateString()}`;
+                                            }
+                                            case "MONTHLY": {
+                                                const now = new Date();
+                                                const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+                                                return `Data from ${firstOfMonth.toLocaleDateString()} to ${now.toLocaleDateString()}`;
+                                            }
+                                            case "CUSTOM":
+                                                return `Data for period: ${customStartDate || 'Start Date'} to ${customEndDate || 'End Date'}`;
+                                            default:
+                                                return "Showing data for Today";
+                                        }
+                                    })()}
+                                </h3>
+                            </div>
                             <div className="glass-card overflow-hidden">
                                 <div className="overflow-x-auto">
                                     <table className="w-full text-sm">
@@ -194,12 +234,13 @@ export const MealsView = ({
                                                 <th className="px-5 py-3 text-right font-semibold text-calories/80 uppercase tracking-wider text-xs border-b border-white/5">P (g)</th>
                                                 <th className="px-5 py-3 text-right font-semibold text-calories/80 uppercase tracking-wider text-xs border-b border-white/5">C (g)</th>
                                                 <th className="px-5 py-3 text-right font-semibold text-calories/80 uppercase tracking-wider text-xs border-b border-white/5">F (g)</th>
+                                                {period === "TODAY" && <th className="px-5 py-3 text-center font-semibold text-calories/80 uppercase tracking-wider text-xs border-b border-white/5"></th>}
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-white/5">
                                             {mealLogs.length === 0 ? (
                                                 <tr>
-                                                    <td colSpan={8} className="px-6 py-12 text-center text-muted-foreground">
+                                                    <td colSpan={period === "TODAY" ? 9 : 8} className="px-6 py-12 text-center text-muted-foreground">
                                                         <div className="flex flex-col items-center gap-2">
                                                             <Utensils className="w-8 h-8 text-muted-foreground/30 mb-2" />
                                                             <p>No meals logged today.</p>
@@ -207,18 +248,18 @@ export const MealsView = ({
                                                     </td>
                                                 </tr>
                                             ) : (
-                                                mealLogs.map((meal, index) => (
+                                                mealLogs.map((meal: any, index: number) => (
                                                     <tr key={index} className="hover:bg-calories/5 transition-colors group">
                                                         <td className="px-5 py-3 text-muted-foreground group-hover:text-foreground transition-colors">
                                                             <div className="flex items-center gap-2">
                                                                 <Clock className="w-3 h-3 text-calories" />
-                                                                {meal.date}
+                                                                {meal.date || meal.entryTime || '-'}
                                                             </div>
                                                         </td>
                                                         <td className="px-5 py-3 font-medium text-foreground">{meal.foodName}</td>
                                                         <td className="px-5 py-3">
                                                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-calories/10 text-calories capitalize border border-calories/20">
-                                                                {meal.type.toLowerCase().replace('_', ' ')}
+                                                                {meal.type?.toLowerCase().replace('_', ' ')}
                                                             </span>
                                                         </td>
                                                         <td className="px-5 py-3 text-right font-medium">{Math.round(meal.quantity)}</td>
@@ -226,6 +267,18 @@ export const MealsView = ({
                                                         <td className="px-5 py-3 text-right text-muted-foreground">{meal.protein ? Math.round(meal.protein) : '-'}</td>
                                                         <td className="px-5 py-3 text-right text-muted-foreground">{meal.carbs ? Math.round(meal.carbs) : '-'}</td>
                                                         <td className="px-5 py-3 text-right text-muted-foreground">{meal.fats ? Math.round(meal.fats) : '-'}</td>
+                                                        {period === "TODAY" && (
+                                                            <td className="px-3 py-3 text-center">
+                                                                <button
+                                                                    title="Delete entry"
+                                                                    disabled={deletingId === meal.mealEntryId}
+                                                                    onClick={() => handleDeleteMeal(meal)}
+                                                                    className="p-1.5 rounded-lg text-muted-foreground hover:text-red-400 hover:bg-red-400/10 transition-colors disabled:opacity-40"
+                                                                >
+                                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                                </button>
+                                                            </td>
+                                                        )}
                                                     </tr>
                                                 ))
                                             )}

@@ -28,21 +28,21 @@ export const StepsView = ({
     data
 }: StepsViewProps) => {
 
-    const [period, setPeriod] = useState<"WEEKLY" | "MONTHLY" | "CUSTOM" | "">("");
+    const [period, setPeriod] = useState<"TODAY" | "WEEKLY" | "MONTHLY" | "CUSTOM" | "">("TODAY");
     const [customStartDate, setCustomStartDate] = useState<string>("");
     const [customEndDate, setCustomEndDate] = useState<string>("");
 
     const { data: particularData, loading } = useParticularSummary({
         type: "STEPCOUNTER",
-        period: period as "WEEKLY" | "MONTHLY" | "CUSTOM",
+        period: period as any,
         customStartDate: period === "CUSTOM" ? customStartDate : undefined,
         customEndDate: period === "CUSTOM" ? customEndDate : undefined,
     });
 
     // Use particular data if a period is selected, else fallback to today's data
-    const displayData = period && particularData
-        ? particularData.stepData
-        : data?.walkingStats;
+    const displayData = period === "TODAY"
+        ? (particularData?.stepData || data?.walkingStats)
+        : (period && particularData ? particularData.stepData : data?.walkingStats);
 
     const steps = displayData?.steps || 0;
     const progress = Math.min((steps / targets.steps) * 100, 100);
@@ -52,7 +52,7 @@ export const StepsView = ({
         <div className="space-y-6">
             <div className="p-6 md:p-8 glass-card inner-glow relative overflow-hidden">
                 {/* Ambient Background */}
-                <div className="absolute -bottom-10 -left-10 w-72 h-72 bg-steps/10 rounded-full blur-3xl point-events-none" />
+                <div className="absolute -bottom-10 -left-10 w-72 h-72 bg-steps/10 rounded-full blur-3xl pointer-events-none" />
 
                 <div className="flex items-center justify-between mb-8 relative z-10">
                     <h2 className="text-2xl font-bold flex items-center gap-3 gradient-text">
@@ -114,16 +114,7 @@ export const StepsView = ({
                         <div>
                             <div className="flex items-center justify-between mb-4">
                                 <h3 className="text-lg font-bold">Weekly Trends</h3>
-                                <div className="flex gap-2 bg-secondary/50 p-1 rounded-lg">
-                                    <Button
-                                        variant={chartTimeRange === "weekly" ? "secondary" : "ghost"}
-                                        size="sm"
-                                        className={`h-8 rounded-md text-xs font-medium ${chartTimeRange === "weekly" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
-                                        onClick={() => setChartTimeRange("weekly")}
-                                    >
-                                        Weekly
-                                    </Button>
-                                </div>
+
                             </div>
                             <TrendLineChart
                                 data={[]}
@@ -134,7 +125,33 @@ export const StepsView = ({
 
                         {/* Steps History Table */}
                         <div>
-                            <h3 className="text-lg font-bold mb-4">{period ? 'Activity Log' : `Today's Activity`}</h3>
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-lg font-bold">
+                                    {(() => {
+                                        switch (period) {
+                                            case "TODAY":
+                                            case "":
+                                                return "Showing data for Today";
+                                            case "WEEKLY": {
+                                                const now = new Date();
+                                                const dayOfWeek = now.getDay() === 0 ? 6 : now.getDay() - 1;
+                                                const lastMonday = new Date(now);
+                                                lastMonday.setDate(now.getDate() - dayOfWeek);
+                                                return `Data from ${lastMonday.toLocaleDateString()} to ${now.toLocaleDateString()}`;
+                                            }
+                                            case "MONTHLY": {
+                                                const now = new Date();
+                                                const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+                                                return `Data from ${firstOfMonth.toLocaleDateString()} to ${now.toLocaleDateString()}`;
+                                            }
+                                            case "CUSTOM":
+                                                return `Data for period: ${customStartDate || 'Start Date'} to ${customEndDate || 'End Date'}`;
+                                            default:
+                                                return "Showing data for Today";
+                                        }
+                                    })()}
+                                </h3>
+                            </div>
                             <div className="glass-card overflow-hidden">
                                 <div className="overflow-x-auto">
                                     <table className="w-full text-sm">

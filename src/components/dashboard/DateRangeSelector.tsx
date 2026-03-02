@@ -3,8 +3,8 @@ import { useEffect } from "react";
 import { Calendar, CalendarDays, CalendarRange } from "lucide-react";
 
 interface DateRangeSelectorProps {
-    period: "WEEKLY" | "MONTHLY" | "CUSTOM";
-    setPeriod: (period: "WEEKLY" | "MONTHLY" | "CUSTOM") => void;
+    period: "TODAY" | "WEEKLY" | "MONTHLY" | "CUSTOM" | "";
+    setPeriod: (period: "TODAY" | "WEEKLY" | "MONTHLY" | "CUSTOM" | "") => void;
     customStartDate?: string;
     setCustomStartDate: (date: string) => void;
     customEndDate?: string;
@@ -38,6 +38,14 @@ export const DateRangeSelector = ({
     return (
         <div className="flex flex-col sm:flex-row gap-4 items-center w-full">
             <div className="flex gap-2 bg-secondary/50 p-1 rounded-lg">
+                <Button
+                    variant={period === "TODAY" ? "secondary" : "ghost"}
+                    size="sm"
+                    className={`h-9 px-4 rounded-md text-sm font-medium transition-all ${period === "TODAY" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                    onClick={() => setPeriod("TODAY")}
+                >
+                    Today
+                </Button>
                 <Button
                     variant={period === "WEEKLY" ? "secondary" : "ghost"}
                     size="sm"

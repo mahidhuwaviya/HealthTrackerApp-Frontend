@@ -24,14 +24,25 @@ import {
 } from "@/components/ui/sidebar";
 import { Link, useLocation } from "wouter";
 
-const navItems = [
-  { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
-  { icon: Utensils, label: "Meals", href: "/dashboard/meals" },
-  { icon: Droplets, label: "Water Intake", href: "/dashboard/water" },
-  { icon: Dumbbell, label: "Workouts", href: "/dashboard/workouts" },
-  { icon: Footprints, label: "Step Counter", href: "/dashboard/steps" },
-  { icon: HeartPulse, label: "Health Overview", href: "/dashboard/health" },
-];
+import { APP_NAV_ITEMS } from "@/constants/mockData";
+
+const iconMap: Record<string, any> = {
+  LayoutDashboard,
+  Utensils,
+  Droplets,
+  Dumbbell,
+  Footprints,
+  HeartPulse,
+  Settings,
+  LogOut,
+  ChevronRight,
+  Activity
+};
+
+const navItems = APP_NAV_ITEMS.map(item => ({
+  ...item,
+  icon: iconMap[item.icon] || Activity
+}));
 
 import { useAuth } from "@/hooks/useAuth";
 

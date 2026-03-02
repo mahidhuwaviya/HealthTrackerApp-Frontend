@@ -21,6 +21,7 @@ import { WorkoutLogPopup } from "@/components/dashboard/WorkoutLogPopup";
 import { WaterLogPopup } from "@/components/dashboard/WaterLogPopup";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { GlassLoader } from "@/components/ui/GlassLoader";
+import { HEALTH_DEFAULTS } from "@/config/health-constants";
 
 const DashboardPage = () => {
     const { user } = useAuth();
@@ -38,33 +39,38 @@ const DashboardPage = () => {
     const [chartTimeRange, setChartTimeRange] = useState("weekly");
 
     const [targets, setTargets] = useState({
-        calories: 2000,
-        water: 2000,
-        steps: 10000,
-        workouts: 45
+        calories: 0,
+        water: 0,
+        steps: 0,
+        workouts: 0
     });
 
     // Update targets from dashboard data if available
     useEffect(() => {
         if (dashboardData?.profile) {
             setTargets({
-                calories: dashboardData.profile.dailyCalorieTarget || 2000,
-                // Use ml directly as backend sends ml and logging is in ml
-                water: dashboardData.profile.dailyWaterGoalMl || 2000,
-                steps: 10000,
-                // Prioritize dailyGoalWorkoutTarget if available, else derive from weekly
+                calories: dashboardData.profile.targetDailyCalorie || dashboardData.profile.dailyCalorieTarget || 0,
+                water: dashboardData.profile.dailyWaterGoalMl || 0,
+                steps: 0, // Backend does not send a steps goal
                 workouts: dashboardData.profile.dailyGoalWorkoutTarget ??
-                    (dashboardData.profile.weeklyGoalWorkoutTarget ? Math.round(dashboardData.profile.weeklyGoalWorkoutTarget / 7) : 45)
+                    (dashboardData.profile.weeklyGoalWorkoutTarget ? Math.round(dashboardData.profile.weeklyGoalWorkoutTarget / 7) : 0)
             });
         }
     }, [dashboardData]);
 
     useEffect(() => {
+        if (isLoading) return;
+
         const hasSeenModal = localStorage.getItem("hasSeenWelcomeModal");
-        if (!hasSeenModal) {
-            setTimeout(() => setShowWelcomeModal(true), 1000);
+        const hasCompletedProfile = !!(dashboardData?.profile?.age && dashboardData?.profile?.weight);
+
+        if (!hasCompletedProfile && !hasSeenModal) {
+            const timer = setTimeout(() => setShowWelcomeModal(true), 1000);
+            return () => clearTimeout(timer);
+        } else if (hasCompletedProfile && !hasSeenModal) {
+            localStorage.setItem("hasSeenWelcomeModal", "true");
         }
-    }, []);
+    }, [dashboardData, isLoading]);
 
     const handleSkipWelcome = () => {
         setShowWelcomeModal(false);

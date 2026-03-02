@@ -57,29 +57,29 @@ export const OverviewView = ({ data, targets }: OverviewViewProps & { targets: {
     const waterCurrent = (typeof rawWater === 'object' && rawWater !== null)
         ? (rawWater.totalamountMl || (Array.isArray(rawWater.waterTotal) ? rawWater.waterTotal.reduce((acc: number, curr: any) => acc + (curr.amount || curr.amountMl || 0), 0) : 0))
         : (rawWater || 0);
-    const waterGoal = targets.water || HEALTH_DEFAULTS.WATER_GOAL_ML;
+    const waterGoal = targets.water || 0;
     const waterProgress = waterGoal > 0 ? Math.min((waterCurrent / waterGoal) * 100, 100) : 0;
 
     const stepsCurrent = data?.walkingStats?.steps || 0;
-    const stepsGoal = targets.steps || HEALTH_DEFAULTS.STEPS_GOAL;
-    const stepsProgress = Math.min((stepsCurrent / stepsGoal) * 100, 100);
+    const stepsGoal = targets.steps || 0;
+    const stepsProgress = stepsGoal > 0 ? Math.min((stepsCurrent / stepsGoal) * 100, 100) : 0;
 
     const caloriesCurrent = data?.dailyLog?.totalDailyCalories || 0;
-    const caloriesGoal = targets.calories || HEALTH_DEFAULTS.CALORIES_GOAL;
-    const caloriesProgress = Math.min((caloriesCurrent / caloriesGoal) * 100, 100);
+    const caloriesGoal = targets.calories || 0;
+    const caloriesProgress = caloriesGoal > 0 ? Math.min((caloriesCurrent / caloriesGoal) * 100, 100) : 0;
 
     // Workout Metrics (New)
-    // Calculate total duration from exercises list or use totalMinsWorkoutToday from backend
-    const workoutsCurrent = (data?.workoutLog?.totalMinsWorkoutToday ??
-        exercisesList.reduce((acc, curr) => acc + (curr.durationMinutes || curr.duration || 0), 0)) || 0;
+    // Calculate total duration from exercises list to ensure accuracy with frontend logs
+    const calculatedWorkoutDuration = exercisesList.reduce((acc, curr) => acc + (curr.durationMinutes || curr.duration || 0), 0);
+    const workoutsCurrent = calculatedWorkoutDuration > 0 ? calculatedWorkoutDuration : (data?.workoutLog?.totalMinsWorkoutToday || 0);
 
-    const workoutsGoal = targets.workouts || HEALTH_DEFAULTS.WORKOUT_GOAL_MINS;
+    const workoutsGoal = targets.workouts || 0;
     const workoutsProgress = workoutsGoal > 0 ? Math.min((workoutsCurrent / workoutsGoal) * 100, 100) : 0;
 
     // Format duration for display (e.g. 90 -> 1h 30m)
     const hours = Math.floor(workoutsCurrent / 60);
     const minutes = Math.round(workoutsCurrent % 60);
-    const workoutDisplayValue = hours > 0 ? `${hours}h ${minutes}m` : `${Math.round(workoutsCurrent)}m`;
+    const workoutDisplayValue = hours > 0 ? `${hours}h ${minutes}m` : `${Math.round(workoutsCurrent)}`;
 
     return (
         <>

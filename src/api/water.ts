@@ -3,15 +3,23 @@ import { API_ROUTES } from "./endpoints";
 
 export const waterApi = {
     logWaterIntake: async (amountMl: number, userEmail?: string) => {
-        // The backend expects a POST to the water log endpoint
-        // It likely accepts a RequestBody with amount and potentially email if not inferred from context
         const response = await apiClient.post(API_ROUTES.WATER.LOG, {
             amount: amountMl,
-            date: new Date().toISOString().split('T')[0], // Sending today's date just in case
+            date: new Date().toISOString().split('T')[0],
             userEmail: userEmail
         }, {
             withCredentials: true
         });
         return response.data;
+    },
+
+    deleteWaterLog: async (payload: { date: string; amount: number; unit?: string }): Promise<void> => {
+        await apiClient.delete(API_ROUTES.WATER.DELETE, {
+            data: {
+                date: payload.date,
+                amount: payload.amount,
+                unit: payload.unit ?? "ml"
+            }
+        });
     }
 };

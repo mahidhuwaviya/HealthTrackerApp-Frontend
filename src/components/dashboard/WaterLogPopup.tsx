@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { dashboardApi } from "@/api/dashboard";
 import { GlassLoader } from "@/components/ui/GlassLoader";
+import { HEALTH_DEFAULTS } from "@/config/health-constants";
 
 interface WaterLogPopupProps {
     isOpen: boolean;
@@ -27,7 +28,7 @@ export const WaterLogPopup = ({ isOpen, onClose, currentIntake: initialIntake, d
     // We can use the cached dashboard data
     const dashboardData: any = queryClient.getQueryData(["dashboard-summary"]);
     const currentIntake = dashboardData?.totalWaterToday || initialIntake || 0;
-    const dailyGoal = dashboardData?.profile?.dailyWaterGoalMl || initialGoal || 2000;
+    const dailyGoal = dashboardData?.profile?.dailyWaterGoalMl || initialGoal || 0;
 
     const { mutate: logWater, isPending } = useMutation({
         mutationFn: async (amount: number) => {
@@ -59,6 +60,7 @@ export const WaterLogPopup = ({ isOpen, onClose, currentIntake: initialIntake, d
         },
         onSettled: () => {
             queryClient.invalidateQueries({ queryKey: ["dashboard-summary"] });
+            queryClient.invalidateQueries({ queryKey: ["particular-summary"] });
             queryClient.invalidateQueries({ queryKey: ["today-logs"] });
             queryClient.invalidateQueries({ queryKey: ["user-stats"] });
 

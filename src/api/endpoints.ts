@@ -24,18 +24,27 @@ export const API_ROUTES = {
         LOG: "/api/meal/logMeal", // POST to log, GET to list today's
         SEARCH: "/api/meal/search",
         HISTORY: "/api/meal/mealLogSummary",
+        DELETE: "/api/meal/deleteParticularEntry", // DELETE by id
     },
     WORKOUTS: {
         LOG: "/api/workouts/logExercise",
         HISTORY: "/api/workouts/history",
-        SEARCH: "/api/workouts/search"
+        SEARCH: "/api/workouts/search",
+        DELETE: "/api/workouts/deleteParticularEntry", // DELETE by id
     },
     WATER: {
         LOG: "/api/water/waterLog",
         HISTORY: "/api/water/history",
+        DELETE: "/api/water/deleteParticularEntry", // DELETE by id
     },
     STEPS: {
         LOG: "/api/steps",
         HISTORY: "/api/steps/history",
-    }
+    },
+    // DeleteParticularEntry: {
+    //     MEAL: "/api/meal/deleteParticularEntry",
+    //     WORKOUT: "/api/workouts/deleteParticularEntry",
+    //     WATER: "/api/water/deleteParticularEntry",
+    //     STEPS: "/api/steps/deleteParticularEntry"
+    // }
 };

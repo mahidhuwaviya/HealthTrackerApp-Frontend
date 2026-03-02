@@ -25,5 +25,11 @@ export const foodApi = {
 
     addMeal: async (data: MealEntryDto): Promise<void> => {
         await apiClient.post(API_ROUTES.MEALS.LOG, data);
+    },
+
+    deleteMeal: async (payload: any): Promise<void> => {
+        await apiClient.delete(API_ROUTES.MEALS.DELETE, {
+            data: payload
+        });
     }
 };

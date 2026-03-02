@@ -65,7 +65,7 @@ export interface DashboardDTO {
 
 export interface ParticularTimeRequestDTO {
     type: "FOOD" | "WATER" | "STEPCOUNTER" | "EXERCISE" | "ALL" | "HEALTH";
-    period: "WEEKLY" | "MONTHLY" | "CUSTOM";
+    period: "TODAY" | "WEEKLY" | "MONTHLY" | "CUSTOM" | "";
     customStartDate?: string; // YYYY-MM-DD
     customEndDate?: string; // YYYY-MM-DD
 }
@@ -90,7 +90,6 @@ export interface ParticularTimeResponseDTO {
 export const dashboardApi = {
     getSummary: async (): Promise<DashboardDTO> => {
         const response = await apiClient.get<DashboardDTO>(API_ROUTES.DASHBOARD.SUMMARY);
-        console.log(response.data);
         return response.data;
     },
     getParticularSummary: async (req: ParticularTimeRequestDTO): Promise<ParticularTimeResponseDTO> => {

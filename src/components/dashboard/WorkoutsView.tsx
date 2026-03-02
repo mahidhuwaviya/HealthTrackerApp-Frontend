@@ -1,17 +1,14 @@
-import { Dumbbell, MoreHorizontal, Plus, Clock, Flame } from "lucide-react";
-// import { WeeklyProgressChart } from "@/components/dashboard/DashboardCharts";
+import { Dumbbell, Plus, Clock, Flame, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ProgressRing from "@/components/ui/ProgressRing";
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger
-} from "@/components/ui/dropdown-menu";
 import { DashboardDTO } from "@/api/dashboard";
 import { useState } from "react";
 import { DateRangeSelector } from "./DateRangeSelector";
 import { useParticularSummary } from "@/hooks/useParticularSummary";
+import { computeScaledGoal } from "@/utils/periodGoal";
+import { workoutApi, ExerciseDeleteRequest } from "@/api/workout";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 interface WorkoutsViewProps {
     targets: { workouts: number };
     onOpenTargetModal: () => void;
@@ -30,30 +27,53 @@ export const WorkoutsView = ({
     onLogWorkout
 }: WorkoutsViewProps) => {
 
-    const [period, setPeriod] = useState<"WEEKLY" | "MONTHLY" | "CUSTOM" | "">("");
+    const queryClient = useQueryClient();
+
+    const [period, setPeriod] = useState<"TODAY" | "WEEKLY" | "MONTHLY" | "CUSTOM" | "">("TODAY");
     const [customStartDate, setCustomStartDate] = useState<string>("");
     const [customEndDate, setCustomEndDate] = useState<string>("");
+    const [deletingId, setDeletingId] = useState<number | null>(null);
 
     const { data: particularData, loading } = useParticularSummary({
         type: "EXERCISE",
-        period: period as "WEEKLY" | "MONTHLY" | "CUSTOM",
+        period: period as any,
         customStartDate: period === "CUSTOM" ? customStartDate : undefined,
         customEndDate: period === "CUSTOM" ? customEndDate : undefined,
     });
 
-    const displayData = period && particularData
-        ? particularData.exerciseData
-        : data?.workoutLog;
+    const isValidWorkoutData = particularData?.exerciseData && Object.keys(particularData.exerciseData).length > 0;
+
+    const displayData = period === "TODAY"
+        ? (isValidWorkoutData ? particularData.exerciseData : data?.workoutLog)
+        : (period && particularData ? particularData.exerciseData : data?.workoutLog);
 
     const workoutData = displayData;
     const exercises = (workoutData as any)?.exerciseEntries || (workoutData as any)?.exercises || [];
     const workoutsCount = exercises.length;
 
-    // Calculate totals if not provided.
-    const totalCaloriesBurned = workoutData?.caloriesBurned || 0;
+    // Calculate totals from rows
+    const totalCaloriesBurned = exercises.reduce((s: number, e: any) => s + (e.caloriesBurned || 0), 0) || workoutData?.caloriesBurned || 0;
+    const totalDuration = exercises.reduce((acc: number, log: any) => acc + (log.durationMinutes || log.duration || 0), 0);
 
-    // Calculate duration from exercises
-    const totalDuration = exercises.reduce((acc, log) => acc + (log.durationMinutes || log.duration || 0), 0);
+    // Scaled goal: daily workout target in minutes × days in period
+    const baseDailyWorkoutMins = targets.workouts || 45;
+    const scaledWorkoutGoal = computeScaledGoal(baseDailyWorkoutMins, period, customStartDate, customEndDate);
+    const workoutProgress = scaledWorkoutGoal > 0 ? Math.min((totalDuration / scaledWorkoutGoal) * 100, 100) : 0;
+
+    const handleDeleteExercise = async (log: any) => {
+        if (!log?.id) return;
+        setDeletingId(log.id);
+        try {
+            await workoutApi.deleteExercise(log);
+            toast.success("Exercise deleted");
+            queryClient.invalidateQueries({ queryKey: ["dashboard-summary"] });
+            queryClient.invalidateQueries({ queryKey: ["particular-summary"] });
+        } catch {
+            toast.error("Failed to delete exercise");
+        } finally {
+            setDeletingId(null);
+        }
+    };
 
     return (
         <div className="space-y-6">
@@ -61,7 +81,7 @@ export const WorkoutsView = ({
             {/* Main Stats Card */}
             <div className="p-6 md:p-8 glass-card inner-glow relative overflow-hidden">
                 {/* Ambient Background */}
-                <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 point-events-none" />
+                <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
 
                 {/* Header */}
                 <div className="flex items-center justify-between mb-8 relative z-10">
@@ -69,18 +89,6 @@ export const WorkoutsView = ({
                         <div className="p-2 bg-primary/20 rounded-xl"><Dumbbell className="w-6 h-6 text-primary" /></div>
                         Workout Tracking
                     </h2>
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-10 w-10 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-xl transition-all">
-                                <MoreHorizontal className="w-5 h-5" />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="glass-card border-primary/20">
-                            <DropdownMenuItem onClick={onOpenTargetModal} className="cursor-pointer focus:bg-primary/20 focus:text-primary">
-                                Update Daily Goal
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
                 </div>
 
                 <div className="mb-6">
@@ -97,41 +105,32 @@ export const WorkoutsView = ({
                 <div className={`grid md:grid-cols-2 gap-8 relative z-10 ${loading ? 'opacity-50' : ''}`}>
                     {/* Ring Section */}
                     <div className="flex flex-col items-center justify-center p-6 bg-secondary/30 rounded-3xl border border-white/5 shadow-inner">
-                        {(() => {
-                            const dailyGoal = targets.workouts || 45;
-                            const currentDailyMins = data?.workoutLog?.totalMinsWorkoutToday || totalDuration;
-                            const dailyProgress = Math.min((totalDuration / dailyGoal) * 100, 100);
-                            const isGoalAchieved = currentDailyMins >= dailyGoal;
-
-                            return (
-                                <div className="relative flex flex-col items-center">
-                                    <div className="relative group cursor-default">
-                                        <div className="absolute inset-0 bg-primary/20 blur-2xl rounded-full opacity-0 group-hover:opacity-50 transition-opacity duration-700" />
-                                        <ProgressRing
-                                            progress={dailyProgress}
-                                            size={160}
-                                            strokeWidth={12}
-                                            color="hsl(var(--primary))"
-                                            className="drop-shadow-lg"
-                                        >
-                                            <div className="flex flex-col items-center">
-                                                <span className="text-4xl font-bold tracking-tighter">{Math.round(dailyProgress)}%</span>
-                                                <span className="text-sm font-medium text-muted-foreground uppercase tracking-wider mt-1">Goal</span>
-                                            </div>
-                                        </ProgressRing>
-                                        {isGoalAchieved && (
-                                            <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-green-500 to-emerald-600 text-white text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1 shadow-lg animate-in fade-in zoom-in border border-white/20 whitespace-nowrap">
-                                                <Flame className="w-3 h-3 fill-current" /> GOAL CRUSHED!
-                                            </div>
-                                        )}
+                        <div className="relative flex flex-col items-center">
+                            <div className="relative group cursor-default">
+                                <div className="absolute inset-0 bg-primary/20 blur-2xl rounded-full opacity-0 group-hover:opacity-50 transition-opacity duration-700" />
+                                <ProgressRing
+                                    progress={workoutProgress}
+                                    size={160}
+                                    strokeWidth={12}
+                                    color="hsl(var(--primary))"
+                                    className="drop-shadow-lg"
+                                >
+                                    <div className="flex flex-col items-center">
+                                        <span className="text-4xl font-bold tracking-tighter">{Math.round(workoutProgress)}%</span>
+                                        <span className="text-sm font-medium text-muted-foreground uppercase tracking-wider mt-1">Goal</span>
                                     </div>
-                                    <div className="mt-4 text-center">
-                                        <span className="text-3xl font-bold text-primary">{Math.round(totalDuration)}</span>
-                                        <span className="text-muted-foreground text-lg ml-1">/ {dailyGoal} min</span>
+                                </ProgressRing>
+                                {totalDuration >= scaledWorkoutGoal && scaledWorkoutGoal > 0 && (
+                                    <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-green-500 to-emerald-600 text-white text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1 shadow-lg animate-in fade-in zoom-in border border-white/20 whitespace-nowrap">
+                                        <Flame className="w-3 h-3 fill-current" /> GOAL CRUSHED!
                                     </div>
-                                </div>
-                            );
-                        })()}
+                                )}
+                            </div>
+                            <div className="mt-4 text-center">
+                                <span className="text-3xl font-bold text-primary">{Math.round(totalDuration)}</span>
+                                <span className="text-muted-foreground text-lg ml-1">/ {Math.round(scaledWorkoutGoal)} min</span>
+                            </div>
+                        </div>
                     </div>
 
                     {/* Stats Grid */}
@@ -168,14 +167,31 @@ export const WorkoutsView = ({
             <div className={`space-y-6 animate-fade-in-up ${loading ? 'opacity-50' : ''}`} style={{ animationDelay: '0.1s' }}>
                 <div>
                     <div className="flex items-center justify-between mb-6">
-                        <h3 className="text-xl font-bold gradient-text">{period ? 'Workout History' : `Today's Exercises`}</h3>
-
-                        {/* Optional Toggle if needed later
-                        <div className="flex gap-2 bg-secondary/50 p-1 rounded-lg">
-                            <Button variant="ghost" size="sm" className="h-8 rounded-md bg-background shadow-sm text-foreground">List</Button>
-                            <Button variant="ghost" size="sm" className="h-8 rounded-md text-muted-foreground hover:text-foreground">Chart</Button>
-                        </div>
-                        */}
+                        <h3 className="text-xl font-bold gradient-text">
+                            {(() => {
+                                switch (period) {
+                                    case "TODAY":
+                                    case "":
+                                        return "Showing data for Today";
+                                    case "WEEKLY": {
+                                        const now = new Date();
+                                        const dayOfWeek = now.getDay() === 0 ? 6 : now.getDay() - 1;
+                                        const lastMonday = new Date(now);
+                                        lastMonday.setDate(now.getDate() - dayOfWeek);
+                                        return `Data from ${lastMonday.toLocaleDateString()} to ${now.toLocaleDateString()}`;
+                                    }
+                                    case "MONTHLY": {
+                                        const now = new Date();
+                                        const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+                                        return `Data from ${firstOfMonth.toLocaleDateString()} to ${now.toLocaleDateString()}`;
+                                    }
+                                    case "CUSTOM":
+                                        return `Data for period: ${customStartDate || 'Start Date'} to ${customEndDate || 'End Date'}`;
+                                    default:
+                                        return "Showing data for Today";
+                                }
+                            })()}
+                        </h3>
                     </div>
 
                     <div className="glass-card overflow-hidden">
@@ -183,17 +199,21 @@ export const WorkoutsView = ({
                             <table className="w-full text-sm">
                                 <thead className="bg-primary/5">
                                     <tr>
-                                        <th className="px-6 py-4 text-left font-semibold text-primary/80 uppercase tracking-wider text-xs border-b border-white/5">Name</th>
-                                        <th className="px-6 py-4 text-right font-semibold text-primary/80 uppercase tracking-wider text-xs border-b border-white/5">Sets</th>
-                                        <th className="px-6 py-4 text-right font-semibold text-primary/80 uppercase tracking-wider text-xs border-b border-white/5">Reps</th>
-                                        <th className="px-6 py-4 text-right font-semibold text-primary/80 uppercase tracking-wider text-xs border-b border-white/5">Calories</th>
-                                        <th className="px-6 py-4 text-right font-semibold text-primary/80 uppercase tracking-wider text-xs border-b border-white/5">Duration</th>
+                                        <th className="px-5 py-3 text-left font-semibold text-primary/80 uppercase tracking-wider text-xs border-b border-white/5">Name</th>
+                                        <th className="px-5 py-3 text-left font-semibold text-primary/80 uppercase tracking-wider text-xs border-b border-white/5">Type</th>
+                                        <th className="px-5 py-3 text-left font-semibold text-primary/80 uppercase tracking-wider text-xs border-b border-white/5">Time</th>
+                                        <th className="px-5 py-3 text-right font-semibold text-primary/80 uppercase tracking-wider text-xs border-b border-white/5">Sets</th>
+                                        <th className="px-5 py-3 text-right font-semibold text-primary/80 uppercase tracking-wider text-xs border-b border-white/5">Reps</th>
+                                        <th className="px-5 py-3 text-right font-semibold text-primary/80 uppercase tracking-wider text-xs border-b border-white/5">Weight</th>
+                                        <th className="px-5 py-3 text-right font-semibold text-primary/80 uppercase tracking-wider text-xs border-b border-white/5">Duration</th>
+                                        <th className="px-5 py-3 text-right font-semibold text-primary/80 uppercase tracking-wider text-xs border-b border-white/5">Calories</th>
+                                        {period === "TODAY" && <th className="px-4 py-3 text-center border-b border-white/5"></th>}
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-white/5">
                                     {exercises.length === 0 ? (
                                         <tr>
-                                            <td colSpan={5} className="px-6 py-12 text-center text-muted-foreground">
+                                            <td colSpan={period === "TODAY" ? 9 : 8} className="px-6 py-12 text-center text-muted-foreground">
                                                 <div className="flex flex-col items-center gap-3">
                                                     <div className="w-12 h-12 rounded-full bg-secondary/50 flex items-center justify-center">
                                                         <Dumbbell className="w-6 h-6 text-muted-foreground/50" />
@@ -204,22 +224,48 @@ export const WorkoutsView = ({
                                             </td>
                                         </tr>
                                     ) : (
-                                        exercises.map((log, index) => (
+                                        exercises.map((log: any, index: number) => (
                                             <tr key={index} className="hover:bg-primary/5 transition-colors group">
-                                                <td className="px-6 py-4 font-medium text-foreground">
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="w-8 h-8 rounded-lg bg-secondary/50 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
-                                                            <Dumbbell className="w-4 h-4" />
+                                                <td className="px-5 py-3 font-medium text-foreground">
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="w-7 h-7 rounded-lg bg-secondary/50 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors shrink-0">
+                                                            <Dumbbell className="w-3.5 h-3.5" />
                                                         </div>
-                                                        {log.exerciseName || log.name || "Workout"}
+                                                        <span className="truncate max-w-[140px]" title={log.exerciseName || log.name}>
+                                                            {log.exerciseName || log.name || "Workout"}
+                                                        </span>
                                                     </div>
                                                 </td>
-                                                <td className="px-6 py-4 text-right text-muted-foreground">{log.sets || 0}</td>
-                                                <td className="px-6 py-4 text-right text-muted-foreground">{log.reps || 0}</td>
-                                                <td className="px-6 py-4 text-right font-medium text-orange-500">
+                                                <td className="px-5 py-3">
+                                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20 capitalize">
+                                                        {(log.workoutType || log.type || '').toLowerCase().replace(/_/g, ' ')}
+                                                    </span>
+                                                </td>
+                                                <td className="px-5 py-3 text-muted-foreground text-xs">
+                                                    <div className="flex items-center gap-1">
+                                                        <Clock className="w-3 h-3" />
+                                                        {log.logTime ? new Date(log.logTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '-'}
+                                                    </div>
+                                                </td>
+                                                <td className="px-5 py-3 text-right text-muted-foreground">{log.sets ?? 0}</td>
+                                                <td className="px-5 py-3 text-right text-muted-foreground">{log.reps ?? 0}</td>
+                                                <td className="px-5 py-3 text-right text-muted-foreground">{log.weightKg ? `${log.weightKg} kg` : '-'}</td>
+                                                <td className="px-5 py-3 text-right font-medium">{Math.round(log.durationMinutes ?? log.duration ?? 0)} min</td>
+                                                <td className="px-5 py-3 text-right font-medium text-orange-500">
                                                     {log.caloriesBurned ? Math.round(log.caloriesBurned) : '-'}
                                                 </td>
-                                                <td className="px-6 py-4 text-right font-medium">{Math.round(log.durationMinutes ?? log.duration ?? 0)} min</td>
+                                                {period === "TODAY" && (
+                                                    <td className="px-3 py-3 text-center">
+                                                        <button
+                                                            title="Delete entry"
+                                                            disabled={deletingId === log.id}
+                                                            onClick={() => handleDeleteExercise(log)}
+                                                            className="p-1.5 rounded-lg text-muted-foreground hover:text-red-400 hover:bg-red-400/10 transition-colors disabled:opacity-40"
+                                                        >
+                                                            <Trash2 className="w-3.5 h-3.5" />
+                                                        </button>
+                                                    </td>
+                                                )}
                                             </tr>
                                         ))
                                     )}
