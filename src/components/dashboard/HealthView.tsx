@@ -6,13 +6,14 @@ import {
     Dumbbell,
     Zap,
     ChevronRight,
-    Edit
+    Edit,
+    Droplets,
+    Footprints
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { DashboardDTO } from "@/api/dashboard";
-import { Goal, ActivityLevel, DietaryPreference } from "@/api/profile";
-import { MOCK_HEALTH_DATA } from "@/constants/mockData"; // Only kept for non-API fields
+import { Goal, ActivityLevel } from "@/api/profile";
 
 interface HealthViewProps {
     onUpdateProfile: () => void;
@@ -22,29 +23,37 @@ interface HealthViewProps {
 export const HealthView = ({ onUpdateProfile, data }: HealthViewProps) => {
     const profile = data?.profile;
 
-    // Derived Health Data
-    const weight = profile?.weight || 0;
-    const height = profile?.height || 0;
+    // Body measurements
+    const weightKg = profile?.currentWeightKg || profile?.weight || 0;
+    const heightCm = profile?.currentHeightCm || profile?.height || 0;
     const age = profile?.age || 0;
-    const gender = profile?.gender ? (profile.gender.charAt(0) + profile.gender.slice(1).toLowerCase()) : "N/A";
+    const gender = profile?.gender
+        ? (profile.gender.charAt(0) + profile.gender.slice(1).toLowerCase())
+        : "N/A";
 
-    // BMI Calculation
-    const heightInMeters = height / 100;
-    const bmiVal = (height > 0 && weight > 0) ? (weight / (heightInMeters * heightInMeters)) : 0;
+    // BMI Calculation (always from kg/cm for accuracy)
+    const heightM = heightCm / 100;
+    const bmiVal = (heightM > 0 && weightKg > 0) ? (weightKg / (heightM * heightM)) : 0;
     const bmi = bmiVal.toFixed(1);
 
-    // Vitals
+    // Vitals from profile
     const heartRate = profile?.heartRate || 0;
-    // Blood pressure and body fat are NOT sent by the backend API — shown as N/A
-    const bloodPressure = "N/A"; // Backend does not provide this field
-    const bodyFat = "N/A";       // Backend does not provide this field
 
-    // Workout environment from actual profile
+    // Goals from profile
+    const targetWeightKg = profile?.targetWeightKg || 0;
+    const dailyCalorieTarget = profile?.targetDailyCalorie || profile?.dailyCalorieTarget || 0;
+    const dailyWaterGoalMl = profile?.dailyWaterGoalMl || 0;
+    const targetDailyWalk = (profile as any)?.targetDailyWalk || 0;
+    const dailyWorkoutMins = profile?.dailyGoalWorkoutTarget || 0;
+    const weeklyWorkoutMins = profile?.weeklyGoalWorkoutTarget || (dailyWorkoutMins * 7) || 0;
+
+    // Workout environment — format EnumValue → "Enum Value"
     const workoutEnvLabel = profile?.workoutEnv && profile.workoutEnv.length > 0
-        ? profile.workoutEnv.map(e => MOCK_HEALTH_DATA.workoutEnvironment || e.replace('_', ' ')).join(", ")
+        ? profile.workoutEnv.map(e => e.replace(/_/g, ' ').toLowerCase()
+            .replace(/\b\w/g, c => c.toUpperCase())).join(", ")
         : "Not set";
 
-    // Lifestyle
+    // Activity level
     const activityMap: Record<string, string> = {
         [ActivityLevel.SEDENTARY]: "Sedentary",
         [ActivityLevel.LIGHTLY_ACTIVE]: "Lightly Active",
@@ -53,19 +62,29 @@ export const HealthView = ({ onUpdateProfile, data }: HealthViewProps) => {
     };
     const activityLabel = profile?.activityLevel ? activityMap[profile.activityLevel] : "N/A";
 
+    // Dietary preferences
     const dietLabel = profile?.dietary && profile.dietary.length > 0
-        ? profile.dietary.map(d => d.replace('_', ' ').toLowerCase()).join(", ")
+        ? profile.dietary.map(d => d.replace(/_/g, ' ').toLowerCase()
+            .replace(/\b\w/g, c => c.toUpperCase())).join(", ")
         : "No Preference";
 
-    // Goals
+    // Health conditions
+    const conditionsLabel = profile?.conditions && profile.conditions.length > 0
+        ? profile.conditions
+            .filter(c => c !== "NONE")
+            .map(c => c.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, ch => ch.toUpperCase()))
+            .join(", ") || "None"
+        : "None";
+
+    // Main goal
     const goalMap: Record<string, string> = {
         [Goal.WEIGHT_LOSS]: "Weight Loss",
         [Goal.MUSCLE_GAIN]: "Muscle Gain",
         [Goal.MAINTENANCE]: "Maintenance",
         [Goal.ATHLETIC_PERFORMANCE]: "Athletic Performance"
     };
-    const mainGoal = profile?.mainGoal ? goalMap[profile.mainGoal] : "General Health";
-    const targetWeight = profile?.targetWeightKg || 0;
+    const mainGoal = profile?.mainGoal || (profile as any)?.goal;
+    const mainGoalLabel = mainGoal ? goalMap[mainGoal] : "General Health";
 
     // BMI Category
     const getBMICategory = (bmi: number) => {
@@ -75,7 +94,6 @@ export const HealthView = ({ onUpdateProfile, data }: HealthViewProps) => {
         if (bmi < 30) return { label: "Overweight", color: "text-yellow-500" };
         return { label: "Obese", color: "text-red-500" };
     };
-
     const bmiCategory = getBMICategory(parseFloat(bmi));
 
     const StatCard = ({ icon: Icon, title, value, subtext, colorClass }: any) => (
@@ -95,8 +113,7 @@ export const HealthView = ({ onUpdateProfile, data }: HealthViewProps) => {
 
     return (
         <div className="space-y-6 animate-fade-in">
-            {/* Header Section */}
-            Hardcoded
+            {/* Header */}
             <div className="flex items-center justify-between p-6 glass-card inner-glow">
                 <div>
                     <h2 className="text-2xl font-bold flex items-center gap-2 text-heart">
@@ -111,16 +128,14 @@ export const HealthView = ({ onUpdateProfile, data }: HealthViewProps) => {
                 </Button>
             </div>
 
-            {/* BMI & Key Metrics */}
+            {/* BMI & Vitals */}
             <div className="grid md:grid-cols-3 gap-6">
                 {/* BMI Card */}
                 <div className="md:col-span-1 p-6 glass-card relative overflow-hidden group">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-bl-full -mr-8 -mt-8 transition-transform group-hover:scale-110" />
-
                     <h3 className="font-semibold mb-6 flex items-center gap-2">
                         <Scale className="w-4 h-4 text-primary" /> Body Mass Index
                     </h3>
-
                     <div className="flex flex-col items-center justify-center py-4">
                         <div className="relative mb-4">
                             <div className="w-32 h-32 rounded-full border-8 border-secondary flex items-center justify-center relative">
@@ -142,54 +157,64 @@ export const HealthView = ({ onUpdateProfile, data }: HealthViewProps) => {
                         <div className={cn("px-3 py-1 rounded-full text-sm font-medium bg-secondary", bmiCategory.color)}>
                             {bmiCategory.label}
                         </div>
+                        <div className="mt-4 grid grid-cols-2 gap-3 w-full text-center">
+                            <div className="p-2 rounded-lg bg-background/50">
+                                <p className="text-xs text-muted-foreground">Weight</p>
+                                <p className="font-bold">{weightKg > 0 ? `${weightKg} kg` : "—"}</p>
+                            </div>
+                            <div className="p-2 rounded-lg bg-background/50">
+                                <p className="text-xs text-muted-foreground">Height</p>
+                                <p className="font-bold">{heightCm > 0 ? `${heightCm} cm` : "—"}</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                {/* Vitals Grid */}
+                {/* Vitals */}
                 <div className="md:col-span-2 grid sm:grid-cols-2 gap-4">
                     <StatCard
                         icon={Activity}
                         title="Resting Heart Rate"
-                        value={`${heartRate} bpm`}
-                        subtext="Healthy Range: 60-100 bpm"
+                        value={heartRate > 0 ? `${heartRate} bpm` : "N/A"}
+                        subtext="Healthy Range: 60–100 bpm"
                         colorClass="bg-red-500/10 text-red-500"
-                    />
-                    <StatCard
-                        icon={HeartPulse}
-                        title="Blood Pressure"
-                        value={bloodPressure}
-                        subtext="Last check: 2 days ago"
-                        colorClass="bg-pink-500/10 text-pink-500"
-                    />
-                    <StatCard
-                        icon={Zap}
-                        title="Body Fat %"
-                        value={bodyFat}
-                        subtext="Athletic Range"
-                        colorClass="bg-yellow-500/10 text-yellow-500"
                     />
                     <StatCard
                         icon={Scale}
                         title="Weight Trend"
-                        value={`${weight} kg`}
-                        subtext={`Target: ${targetWeight} kg`}
+                        value={weightKg > 0 ? `${weightKg} kg` : "N/A"}
+                        subtext={targetWeightKg > 0 ? `Target: ${targetWeightKg} kg` : "No target set"}
                         colorClass="bg-blue-500/10 text-blue-500"
+                    />
+                    <StatCard
+                        icon={Zap}
+                        title="Age & Gender"
+                        value={age > 0 ? `${age} yrs` : "N/A"}
+                        subtext={gender !== "N/A" ? gender : undefined}
+                        colorClass="bg-yellow-500/10 text-yellow-500"
+                    />
+                    <StatCard
+                        icon={HeartPulse}
+                        title="Health Conditions"
+                        value={conditionsLabel}
+                        subtext={conditionsLabel === "None" ? "No known conditions" : undefined}
+                        colorClass="bg-pink-500/10 text-pink-500"
                     />
                 </div>
             </div>
 
-            {/* Lifestyle & Goals Section */}
+            {/* Lifestyle & Goals */}
             <div className="grid md:grid-cols-2 gap-6">
-                {/* Lifestyle Details */}
+                {/* Lifestyle */}
                 <div className="p-6 glass-card">
                     <h3 className="font-semibold mb-6 flex items-center gap-2">
                         <Activity className="w-4 h-4 text-primary" /> Lifestyle Profile
                     </h3>
-                    <div className="space-y-4">
+                    <div className="space-y-3">
                         {[
                             { label: "Activity Level", value: activityLabel, icon: Dumbbell },
                             { label: "Dietary Preference", value: dietLabel, icon: Utensils },
-                            { label: "Workout Environment", value: MOCK_HEALTH_DATA.workoutEnvironment, icon: Zap }, // Uses mock
+                            { label: "Workout Environment", value: workoutEnvLabel, icon: Zap },
                         ].map((item, i) => (
                             <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-secondary/30">
                                 <div className="flex items-center gap-3">
@@ -204,31 +229,55 @@ export const HealthView = ({ onUpdateProfile, data }: HealthViewProps) => {
                     </div>
                 </div>
 
-                {/* Goals Summary */}
+                {/* Goals */}
                 <div className="p-6 glass-card bg-gradient-to-br from-primary/5 to-transparent">
                     <h3 className="font-semibold mb-6 flex items-center gap-2">
                         <Dumbbell className="w-4 h-4 text-primary" /> Current Goals
                     </h3>
-                    <div className="space-y-6">
-                        <div>
-                            <div className="flex justify-between text-sm mb-2">
-                                <span className="text-muted-foreground">Main Objective</span>
-                                <span className="font-bold text-primary">{mainGoal}</span>
-                            </div>
-                            <div className="h-2 bg-secondary rounded-full overflow-hidden">
-                                <div className="h-full bg-primary w-3/4 rounded-full" />
-                            </div>
-                            <p className="text-xs text-muted-foreground mt-2 text-right">75% on track</p>
+                    <div className="space-y-4">
+                        {/* Main Goal */}
+                        <div className="p-3 rounded-lg bg-background/60 flex items-center justify-between">
+                            <span className="text-sm text-muted-foreground">Main Objective</span>
+                            <span className="text-sm font-bold text-primary">{mainGoalLabel}</span>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
+                        {/* Goal grid */}
+                        <div className="grid grid-cols-2 gap-3">
                             <div className="p-3 rounded-lg bg-background/60">
                                 <p className="text-xs text-muted-foreground">Target Weight</p>
-                                <p className="text-xl font-bold">{targetWeight} <span className="text-xs font-normal text-muted-foreground">kg</span></p>
+                                <p className="text-xl font-bold">
+                                    {targetWeightKg > 0 ? targetWeightKg : "—"}
+                                    <span className="text-xs font-normal text-muted-foreground"> kg</span>
+                                </p>
                             </div>
                             <div className="p-3 rounded-lg bg-background/60">
-                                <p className="text-xs text-muted-foreground">Weekly Workouts</p>
-                                <p className="text-xl font-bold">4 <span className="text-xs font-normal text-muted-foreground">sessions</span></p>
+                                <p className="text-xs text-muted-foreground">Daily Calories</p>
+                                <p className="text-xl font-bold">
+                                    {dailyCalorieTarget > 0 ? dailyCalorieTarget.toLocaleString() : "—"}
+                                    <span className="text-xs font-normal text-muted-foreground"> kcal</span>
+                                </p>
+                            </div>
+                            <div className="p-3 rounded-lg bg-background/60">
+                                <Droplets className="w-3.5 h-3.5 text-blue-400 mb-1" />
+                                <p className="text-xs text-muted-foreground">Water Goal</p>
+                                <p className="text-xl font-bold">
+                                    {dailyWaterGoalMl > 0 ? dailyWaterGoalMl.toLocaleString() : "—"}
+                                    <span className="text-xs font-normal text-muted-foreground"> ml</span>
+                                </p>
+                            </div>
+                            <div className="p-3 rounded-lg bg-background/60">
+                                <Footprints className="w-3.5 h-3.5 text-green-400 mb-1" />
+                                <p className="text-xs text-muted-foreground">Daily Steps</p>
+                                <p className="text-xl font-bold">
+                                    {targetDailyWalk > 0 ? targetDailyWalk.toLocaleString() : "—"}
+                                    <span className="text-xs font-normal text-muted-foreground"> steps</span>
+                                </p>
+                            </div>
+                            <div className="p-3 rounded-lg bg-background/60 col-span-2">
+                                <p className="text-xs text-muted-foreground">Workout Target</p>
+                                <p className="text-xl font-bold">
+                                    {dailyWorkoutMins > 0 ? `${dailyWorkoutMins} min/day` : weeklyWorkoutMins > 0 ? `${weeklyWorkoutMins} min/wk` : "—"}
+                                </p>
                             </div>
                         </div>
 

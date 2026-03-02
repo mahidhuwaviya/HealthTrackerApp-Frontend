@@ -51,7 +51,7 @@ const DashboardPage = () => {
             setTargets({
                 calories: dashboardData.profile.targetDailyCalorie || dashboardData.profile.dailyCalorieTarget || 0,
                 water: dashboardData.profile.dailyWaterGoalMl || 0,
-                steps: 0, // Backend does not send a steps goal
+                steps: (dashboardData.profile as any).targetDailyWalk || 0,
                 workouts: dashboardData.profile.dailyGoalWorkoutTarget ??
                     (dashboardData.profile.weeklyGoalWorkoutTarget ? Math.round(dashboardData.profile.weeklyGoalWorkoutTarget / 7) : 0)
             });

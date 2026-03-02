@@ -60,8 +60,9 @@ export const OverviewView = ({ data, targets }: OverviewViewProps & { targets: {
     const waterGoal = targets.water || 0;
     const waterProgress = waterGoal > 0 ? Math.min((waterCurrent / waterGoal) * 100, 100) : 0;
 
-    const stepsCurrent = data?.walkingStats?.steps || 0;
-    const stepsGoal = targets.steps || 0;
+    const walkingList = data?.walkingStats?.list || [];
+    const stepsCurrent = walkingList.reduce((sum, l) => sum + (l.steps || l.disCovered || 0), 0);
+    const stepsGoal = targets.steps || (data?.profile as any)?.targetDailyWalk || 0;
     const stepsProgress = stepsGoal > 0 ? Math.min((stepsCurrent / stepsGoal) * 100, 100) : 0;
 
     const caloriesCurrent = data?.dailyLog?.totalDailyCalories || 0;

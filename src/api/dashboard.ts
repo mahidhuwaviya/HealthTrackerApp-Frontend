@@ -13,9 +13,19 @@ export interface DailyLog {
 }
 
 export interface WalkingLog {
-    steps: number;
-    distance: number;
-    caloriesBurned: number;
+    id?: number;
+    steps?: number;
+    disCovered?: number;   // field used in WalkingEntryRequestDTO
+    distanceKm?: number;   // backend response field
+    distance?: number;
+    caloriesBurned?: number;
+    date?: string;
+    logDate?: string;      // backend response field
+    unit?: string;
+}
+
+export interface WalkingResponseDTO {
+    list: WalkingLog[];
 }
 
 export interface ExerciseEntry {
@@ -60,7 +70,7 @@ export interface DashboardDTO {
     totalWaterToday: number | WaterTotalDTO;
     waterLogs?: WaterLogEntry[]; // Added based on user feedback
     workoutLog: WorkoutResponseDTO;
-    walkingStats: WalkingLog;
+    walkingStats: WalkingResponseDTO; // backend sends { list: WalkingLog[] }
 }
 
 export interface ParticularTimeRequestDTO {
@@ -82,7 +92,7 @@ export interface MealResponseDTO {
 export interface ParticularTimeResponseDTO {
     foodData?: MealResponseDTO;
     waterData?: WaterTotalDTO;
-    stepData?: WalkingLog;
+    stepData?: WalkingResponseDTO; // backend returns WalkingResponseDTO { list: WalkingLog[] }
     exerciseData?: WorkoutResponseDTO;
     userData?: UserProfileData;
 }

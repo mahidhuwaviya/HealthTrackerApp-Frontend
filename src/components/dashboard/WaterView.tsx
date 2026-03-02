@@ -1,13 +1,8 @@
-import { Droplets, MoreHorizontal, Clock, Trash2 } from "lucide-react";
+import { Droplets, Clock, Trash2 } from "lucide-react";
 // import { WeeklyProgressChart } from "@/components/dashboard/DashboardCharts";
 import { Button } from "@/components/ui/button";
 import ProgressRing from "@/components/ui/ProgressRing";
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger
-} from "@/components/ui/dropdown-menu";
+import { HEALTH_DEFAULTS } from "@/config/health-constants";
 import { DashboardDTO } from "@/api/dashboard";
 import { useState } from "react";
 import { DateRangeSelector } from "./DateRangeSelector";
@@ -17,14 +12,6 @@ import { computeScaledGoal } from "@/utils/periodGoal";
 import { waterApi } from "@/api/water";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { HEALTH_DEFAULTS } from "@/config/health-constants";
-// User said: "It should not be in the dashboard page bu in the water intake component /page"
-// So WaterView should arguably use the WaterTracker component which has the "Log" buttons inside it?
-// OR does WaterView just show stats and have a "Log Water" button that opens the popup?
-// User said "which page the log button on clicking the log button we would enter the data".
-// And "the popup should be in the +quick add button".
-// Let's put the nice WaterTracker component IN the WaterView because that's the "Water Page".
-// And it has the "Quick Add buttons" inside it too, which is convenient.
 
 
 interface WaterViewProps {
@@ -114,18 +101,7 @@ export const WaterView = ({
                         <div className="p-2 bg-water/20 rounded-xl"><Droplets className="w-6 h-6 text-water" /></div>
                         Water Intake
                     </h2>
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-10 w-10 text-muted-foreground hover:text-water hover:bg-water/10 rounded-xl transition-all">
-                                <MoreHorizontal className="w-5 h-5" />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="glass-card border-water/20">
-                            <DropdownMenuItem onClick={onOpenTargetModal} className="cursor-pointer focus:bg-water/20 focus:text-water">
-                                Update Daily Goal
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+
                 </div>
 
                 <div className="mb-6">
@@ -139,7 +115,7 @@ export const WaterView = ({
                     />
                 </div>
 
-                <div className={`grid md:grid-cols-2 gap-8 relative z-10 ${loading ? 'opacity-50' : ''}`}>
+                <div className={`grid md: grid - cols - 2 gap - 8 relative z - 10 ${loading ? 'opacity-50' : ''} `}>
                     <div className="flex flex-col items-center justify-center space-y-8 bg-secondary/30 rounded-3xl p-6 border border-white/5">
                         {/* Use the comprehensive WaterTracker component here */}
                         <div className="w-full">
@@ -177,15 +153,15 @@ export const WaterView = ({
                                                 const dayOfWeek = now.getDay() === 0 ? 6 : now.getDay() - 1;
                                                 const lastMonday = new Date(now);
                                                 lastMonday.setDate(now.getDate() - dayOfWeek);
-                                                return `Data from ${lastMonday.toLocaleDateString()} to ${now.toLocaleDateString()}`;
+                                                return `Data from ${lastMonday.toLocaleDateString()} to ${now.toLocaleDateString()} `;
                                             }
                                             case "MONTHLY": {
                                                 const now = new Date();
                                                 const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-                                                return `Data from ${firstOfMonth.toLocaleDateString()} to ${now.toLocaleDateString()}`;
+                                                return `Data from ${firstOfMonth.toLocaleDateString()} to ${now.toLocaleDateString()} `;
                                             }
                                             case "CUSTOM":
-                                                return `Data for period: ${customStartDate || 'Start Date'} to ${customEndDate || 'End Date'}`;
+                                                return `Data for period: ${customStartDate || 'Start Date'} to ${customEndDate || 'End Date'} `;
                                             default:
                                                 return "Showing data for Today";
                                         }

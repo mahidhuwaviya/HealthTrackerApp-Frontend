@@ -46,6 +46,8 @@ interface ProfileData {
     gender: string;
     dailyCalorieTarget: string;
     dailyGoalWorkoutTarget: string;
+    dailyWaterGoalMl: string;
+    targetDailyWalk: string;
 }
 
 const DetailedProfileModal = ({ isOpen, onClose }: DetailedProfileModalProps) => {
@@ -68,7 +70,9 @@ const DetailedProfileModal = ({ isOpen, onClose }: DetailedProfileModalProps) =>
         targetWeight: "",
         gender: "MALE",
         dailyCalorieTarget: "",
-        dailyGoalWorkoutTarget: ""
+        dailyGoalWorkoutTarget: "",
+        dailyWaterGoalMl: "2000",
+        targetDailyWalk: "10000"
     });
 
     const [isEditing, setIsEditing] = useState(true);
@@ -194,7 +198,9 @@ const DetailedProfileModal = ({ isOpen, onClose }: DetailedProfileModalProps) =>
                 targetWeight: targetW,
                 gender: genderVal,
                 dailyCalorieTarget: defaultCalories,
-                dailyGoalWorkoutTarget: p.dailyGoalWorkoutTarget?.toString() || (p.weeklyGoalWorkoutTarget ? Math.round(p.weeklyGoalWorkoutTarget / 7).toString() : "30")
+                dailyGoalWorkoutTarget: p.dailyGoalWorkoutTarget?.toString() || (p.weeklyGoalWorkoutTarget ? Math.round(p.weeklyGoalWorkoutTarget / 7).toString() : "30"),
+                dailyWaterGoalMl: p.dailyWaterGoalMl?.toString() || "2000",
+                targetDailyWalk: (p as any).targetDailyWalk?.toString() || "10000"
             });
 
             setWeightUnit(wUnit);
@@ -290,12 +296,14 @@ const DetailedProfileModal = ({ isOpen, onClose }: DetailedProfileModalProps) =>
                 targetDailyCalorie: data.dailyCalorieTarget ? parseInt(data.dailyCalorieTarget) : undefined,
                 dailyGoalWorkoutTarget: data.dailyGoalWorkoutTarget ? parseInt(data.dailyGoalWorkoutTarget) : 30,
                 weeklyGoalWorkoutTarget: data.dailyGoalWorkoutTarget ? parseInt(data.dailyGoalWorkoutTarget) * 7 : 210,
+                dailyWaterGoalMl: data.dailyWaterGoalMl ? parseInt(data.dailyWaterGoalMl) : 2000,
                 conditions: data.conditions || [],
                 healthConditions: data.conditions || [],
                 dietary: data.dietary || [],
                 dietaryPreferences: data.dietary || [],
                 workoutEnv: data.workoutEnv || [],
                 exerciseTypes: data.workoutEnv || [],
+                ...(data.targetDailyWalk ? { targetDailyWalk: parseInt(data.targetDailyWalk) } : { targetDailyWalk: 10000 }),
             };
 
             (payload as any).DailyGoalWorkoutTarget = payload.dailyGoalWorkoutTarget;

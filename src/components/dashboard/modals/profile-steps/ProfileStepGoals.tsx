@@ -104,6 +104,40 @@ export const ProfileStepGoals = ({
                 </div>
             </div>
 
+            <div className="grid grid-cols-2 gap-6">
+                <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                        <Label htmlFor="dailyWaterGoalMl">Daily Water Goal (ml)</Label>
+                        <span className="text-[10px] text-muted-foreground uppercase tracking-widest">Default: 2000</span>
+                    </div>
+                    <Input
+                        id="dailyWaterGoalMl"
+                        type="number"
+                        min="0"
+                        placeholder="e.g. 2000"
+                        className="h-12 bg-secondary/50 focus:border-primary/50"
+                        value={data.dailyWaterGoalMl}
+                        onChange={(e) => updateData("dailyWaterGoalMl", e.target.value)}
+                    />
+                </div>
+
+                <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                        <Label htmlFor="targetDailyWalk">Daily Steps Goal</Label>
+                        <span className="text-[10px] text-muted-foreground uppercase tracking-widest">Default: 10000</span>
+                    </div>
+                    <Input
+                        id="targetDailyWalk"
+                        type="number"
+                        min="0"
+                        placeholder="e.g. 10000"
+                        className="h-12 bg-secondary/50 focus:border-primary/50"
+                        value={data.targetDailyWalk}
+                        onChange={(e) => updateData("targetDailyWalk", e.target.value)}
+                    />
+                </div>
+            </div>
+
             <div className="space-y-2">
                 <Label htmlFor="dailyCalorieTarget">Daily Calorie Target (kcal)</Label>
                 <Input

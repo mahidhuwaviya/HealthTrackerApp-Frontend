@@ -13,7 +13,7 @@ export const API_ROUTES = {
         PROFILE_GET_PROFILE: "/api/userProfileData/getUserProfileData",
     },
     STATS: {
-        DAILY: "/api/stats/daily", // Returns consolidated dashboard stats
+        DAILY: "/api/stats/daily",
         WEEKLY: "/api/stats/weekly",
     },
     DASHBOARD: {
@@ -21,25 +21,25 @@ export const API_ROUTES = {
         SUMMARY_PARTICULAR: "/api/dashboard/summary/getParticularSummary",
     },
     MEALS: {
-        LOG: "/api/meal/logMeal", // POST to log, GET to list today's
+        LOG: "/api/meal/logMeal",
         SEARCH: "/api/meal/search",
-        HISTORY: "/api/meal/mealLogSummary",
-        DELETE: "/api/meal/deleteParticularEntry", // DELETE by id
+        // HISTORY: "/api/meal/mealLogSummary",
+        DELETE: "/api/meal/deleteParticularEntry",
     },
     WORKOUTS: {
         LOG: "/api/workouts/logExercise",
-        HISTORY: "/api/workouts/history",
+        // HISTORY: "/api/workouts/history",
         SEARCH: "/api/workouts/search",
-        DELETE: "/api/workouts/deleteParticularEntry", // DELETE by id
+        DELETE: "/api/workouts/deleteParticularEntry",
     },
     WATER: {
         LOG: "/api/water/waterLog",
-        HISTORY: "/api/water/history",
-        DELETE: "/api/water/deleteParticularEntry", // DELETE by id
+        // HISTORY: "/api/water/history",
+        DELETE: "/api/water/deleteParticularEntry",
     },
     STEPS: {
-        LOG: "/api/steps",
-        HISTORY: "/api/steps/history",
+        LOG: "/api/walking/sync",
+        // HISTORY: "/api/steps/history",
     },
     // DeleteParticularEntry: {
     //     MEAL: "/api/meal/deleteParticularEntry",
