@@ -8,12 +8,20 @@ export const API_ROUTES = {
         GET_OTP: "/api/auth/getOtp",
         VERIFY_OTP: "/api/auth/verifyOtp",
         UPDATE_PASSWORD: "/api/auth/UpdatePassword",
+        UPDATE_EMAIL: "/api/auth/UpdateEmail",
+    },
+    ADMIN: {
+        GET_ALL_USERS: "/api/admin/getAllUsers",
+        GET_USER: "/api/admin/getUser",
+        DELETE_USER: "/api/admin/deleteUserData",
     },
     USER: {
         INFO: "/api/userData",
         PROFILE_UPDATE: "/api/userProfileData/update",
         PROFILE_SAVE: "/api/userProfileData/submit",
         PROFILE_GET_PROFILE: "/api/userProfileData/getUserProfileData",
+        UPDATE_USERNAME: "/api/updateUserName",
+        DELETE_ACCOUNT: "/api/userAccountDelete",
     },
     STATS: {
         DAILY: "/api/stats/daily",

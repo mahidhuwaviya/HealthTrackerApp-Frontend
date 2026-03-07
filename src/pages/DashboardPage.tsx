@@ -11,6 +11,7 @@ import { HealthView } from "@/components/dashboard/HealthView";
 import { OverviewView } from "@/components/dashboard/OverviewView";
 import { QuickAddModal } from "@/components/dashboard/modals/QuickAddModal";
 import { UpdateGoalsModal } from "@/components/dashboard/modals/UpdateGoalsModal";
+import { AdminView } from "@/components/dashboard/AdminView";
 
 import { WelcomeModal } from "@/components/dashboard/modals/WelcomeModal";
 
@@ -22,6 +23,7 @@ import { WaterLogPopup } from "@/components/dashboard/WaterLogPopup";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { GlassLoader } from "@/components/ui/GlassLoader";
 import { HEALTH_DEFAULTS } from "@/config/health-constants";
+import { Lock } from "lucide-react";
 
 const DashboardPage = () => {
     const { user } = useAuth();
@@ -62,8 +64,7 @@ const DashboardPage = () => {
         if (isLoading) return;
 
         const hasSeenModal = localStorage.getItem("hasSeenWelcomeModal");
-        const hasCompletedProfile = !!(dashboardData?.profile?.age && dashboardData?.profile?.weight);
-
+        
         if (!hasCompletedProfile && !hasSeenModal) {
             const timer = setTimeout(() => setShowWelcomeModal(true), 1000);
             return () => clearTimeout(timer);
@@ -87,6 +88,13 @@ const DashboardPage = () => {
         setShowProfileModal(false);
     };
 
+    // Use the backend's explicit onboarding flag if available, otherwise fallback to checking core metrics
+    const hasCompletedProfile = !!(
+        dashboardData?.profile?.isOnboardingComplete ||
+        (dashboardData?.profile?.age && dashboardData?.profile?.currentWeightKg) ||
+        (dashboardData?.profile?.age && dashboardData?.profile?.weight)
+    );
+
     const renderContent = () => {
         const commonProps = {
             targets,
@@ -96,19 +104,39 @@ const DashboardPage = () => {
             data: dashboardData
         };
 
+        const renderLockedState = (title: string) => (
+            <div className="flex flex-col items-center justify-center p-12 min-h-[50vh] text-center glass-card border border-primary/10 rounded-2xl animate-in zoom-in-95 duration-500">
+                <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-6">
+                    <Lock className="w-8 h-8 text-primary opacity-80" />
+                </div>
+                <h2 className="text-2xl font-bold mb-3">{title} Locked</h2>
+                <p className="text-muted-foreground mb-8 max-w-md">
+                    You must complete your health profile setup before you can access this feature and start tracking your progress.
+                </p>
+                <button
+                    onClick={() => setShowProfileModal(true)}
+                    className="px-8 py-3 bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-300 rounded-full font-semibold shadow-lg shadow-primary/25"
+                >
+                    Setup Health Profile Now
+                </button>
+            </div>
+        );
+
         switch (subpage) {
             case "meals":
-                return <MealsView {...commonProps} onLogMeal={() => setShowMealPopup(true)} />;
+                return hasCompletedProfile ? <MealsView {...commonProps} onLogMeal={() => setShowMealPopup(true)} /> : renderLockedState("Meal Tracking");
             case "water":
-                return <WaterView {...commonProps} />;
+                return hasCompletedProfile ? <WaterView {...commonProps} /> : renderLockedState("Water Tracking");
             case "workouts":
-                return <WorkoutsView {...commonProps} onLogWorkout={() => setShowWorkoutPopup(true)} />;
+                return hasCompletedProfile ? <WorkoutsView {...commonProps} onLogWorkout={() => setShowWorkoutPopup(true)} /> : renderLockedState("Workout Tracking");
             case "steps":
-                return <StepsView {...commonProps} />;
+                return hasCompletedProfile ? <StepsView {...commonProps} /> : renderLockedState("Step Tracking");
             case "health":
                 return <HealthView onUpdateProfile={() => setShowProfileModal(true)} data={dashboardData} />;
+            case "admin":
+                return user?.role === "ROLE_ADMIN" ? <AdminView /> : <OverviewView data={dashboardData} targets={targets} hasCompletedProfile={hasCompletedProfile} onUpdateProfile={() => setShowProfileModal(true)} />;
             default:
-                return <OverviewView data={dashboardData} targets={targets} />;
+                return <OverviewView data={dashboardData} targets={targets} hasCompletedProfile={hasCompletedProfile} onUpdateProfile={() => setShowProfileModal(true)} />;
         }
     };
     // ... keep return ...
@@ -131,6 +159,7 @@ const DashboardPage = () => {
                     subpage={subpage}
                     onQuickAdd={() => setShowQuickAdd(true)}
                     onUpdateProfile={() => setShowProfileModal(true)}
+                    isProfileComplete={hasCompletedProfile}
                 />
 
                 {/* Main Content */}

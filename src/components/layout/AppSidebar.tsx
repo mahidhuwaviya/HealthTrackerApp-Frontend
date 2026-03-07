@@ -8,7 +8,9 @@ import {
   Settings,
   LogOut,
   ChevronRight,
-  Activity
+  Activity,
+  Shield,
+  User
 } from "lucide-react";
 import {
   Sidebar,
@@ -23,6 +25,14 @@ import {
   SidebarFooter,
 } from "@/components/ui/sidebar";
 import { Link, useLocation } from "wouter";
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuTrigger 
+} from "@/components/ui/dropdown-menu";
+import { useState } from "react";
+import { AccountSettingsModal } from "@/components/dashboard/modals/AccountSettingsModal";
 
 import { APP_NAV_ITEMS } from "@/constants/mockData";
 
@@ -49,6 +59,7 @@ import { useAuth } from "@/hooks/useAuth";
 export function AppSidebar() {
   const [location] = useLocation();
   const { user, logout } = useAuth();
+  const [showSettings, setShowSettings] = useState(false);
 
   const isActive = (href: string) => location === href;
 
@@ -99,6 +110,27 @@ export function AppSidebar() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
+
+              {/* ADMIN PANEL: Only visible if user has ROLE_ADMIN */}
+              {user?.role === "ROLE_ADMIN" && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    tooltip="Admin Panel"
+                    isActive={isActive("/dashboard/admin")}
+                    className={`transition-all duration-200 mt-2 ${isActive("/dashboard/admin")
+                      ? "bg-primary/10 text-primary border border-primary/20"
+                      : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                      }`}
+                  >
+                    <Link href="/dashboard/admin">
+                      <Shield className={isActive("/dashboard/admin") ? "text-primary" : ""} />
+                      <span className="group-data-[collapsible=icon]:hidden">Admin Panel</span>
+                      {isActive("/dashboard/admin") && <ChevronRight className="ml-auto w-5 h-5 shrink-0 group-data-[collapsible=icon]:hidden" />}
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -120,12 +152,22 @@ export function AppSidebar() {
 
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip="Settings">
-              <Link href="/settings">
-                <Settings className="w-5 h-5" />
-                <span className="group-data-[collapsible=icon]:hidden">Settings</span>
-              </Link>
-            </SidebarMenuButton>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <SidebarMenuButton tooltip="Settings">
+                  <Settings className="w-5 h-5" />
+                  <span className="group-data-[collapsible=icon]:hidden">Settings</span>
+                </SidebarMenuButton>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent side="right" align="end" className="w-56 glass-card border-white/10 p-2 ml-2">
+                 <DropdownMenuItem 
+                   className="cursor-pointer font-medium p-3 rounded-lg focus:bg-primary/20 focus:text-primary transition-all flex items-center gap-2"
+                   onClick={() => setShowSettings(true)}
+                 >
+                    <User className="w-4 h-4" /> Manage Profile
+                 </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </SidebarMenuItem>
 
           <SidebarMenuItem>
@@ -142,6 +184,9 @@ export function AppSidebar() {
 
         </SidebarMenu>
       </SidebarFooter>
+
+      {/* Settings Modal Injection */}
+      <AccountSettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} />
     </Sidebar>
   );
 }

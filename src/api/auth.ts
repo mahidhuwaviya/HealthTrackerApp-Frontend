@@ -13,6 +13,7 @@ export interface BackendUser {
     userEmail?: string;
     name?: string;
     userName?: string;
+    userRole?: string;
 }
 
 export interface DecodedToken {
@@ -118,6 +119,42 @@ export const authApi = {
             password: dto.newPassword
         };
         const response = await apiClient.put(API_ROUTES.AUTH.UPDATE_PASSWORD, payload);
+        return response.data;
+    },
+
+    // --- Update Email Flow ---
+    // Sends the exact same OtpVerifyDto, but to /UpdateEmail, adding `oldEmail` query parameter.
+    updateEmail: async (dto: OtpVerifyDto, oldEmail: string) => {
+        const payload = {
+            email: dto.email,
+            otp: dto.otp,
+            val: "verifyEmail",      // Enum used for email verifications
+            password: dto.newPassword // Usually empty/ignored per backend expectations here
+        };
+        const response = await apiClient.put(`${API_ROUTES.AUTH.UPDATE_EMAIL}?oldEmail=${encodeURIComponent(oldEmail)}`, payload);
+        return response.data;
+    },
+
+    // --- Update Username ---
+    updateUsername: async (newUsername: string) => {
+        // Backend expects text/plain or minimal body structure based on typical Spring string handlers
+        const response = await apiClient.put(API_ROUTES.USER.UPDATE_USERNAME, newUsername, {
+            headers: {
+                "Content-Type": "text/plain"
+            }
+        });
+        return response.data;
+    },
+
+    // --- Delete Account ---
+    deleteAccount: async (email: string) => {
+        // Equivalent to the ADMIN delete method structure, targeting the USER context
+        const response = await apiClient.delete(API_ROUTES.USER.DELETE_ACCOUNT, {
+            headers: {
+                "Content-Type": "text/plain",
+            },
+            data: email, // Axios way of passing body contents inside a DELETE request
+        });
         return response.data;
     },
 };

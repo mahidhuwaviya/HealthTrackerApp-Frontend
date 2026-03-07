@@ -6,8 +6,9 @@ export const useParticularSummary = (req: ParticularTimeRequestDTO) => {
         queryKey: ["particular-summary", req.type, req.period, req.customStartDate, req.customEndDate],
         queryFn: () => dashboardApi.getParticularSummary(req),
         enabled: !!req.period,
-        staleTime: 0, // Always refetch when invalidated
-        refetchOnWindowFocus: true
+        staleTime: 1000 * 60 * 5, // Cache for 5 mins to prevent spam
+        refetchOnWindowFocus: false,
+        retry: false
     });
 
     return {

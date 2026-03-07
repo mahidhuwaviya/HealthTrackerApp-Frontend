@@ -16,6 +16,7 @@ interface DashboardHeaderProps {
     subpage: string;
     onQuickAdd: () => void;
     onUpdateProfile: () => void;
+    isProfileComplete: boolean;
 }
 
 import { useAuth } from "@/hooks/useAuth";
@@ -23,7 +24,8 @@ import { useAuth } from "@/hooks/useAuth";
 export const DashboardHeader = ({
     subpage,
     onQuickAdd,
-    onUpdateProfile
+    onUpdateProfile,
+    isProfileComplete
 }: DashboardHeaderProps) => {
     const { user, logout } = useAuth();
 
@@ -45,10 +47,12 @@ export const DashboardHeader = ({
                 </div>
 
                 <div className="flex items-center gap-4">
-                    <Button size="sm" className="bg-gradient-to-r from-primary to-accent hover:to-primary text-primary-foreground shadow-lg hover:shadow-primary/25 transition-all duration-300 rounded-full px-6" onClick={onQuickAdd}>
-                        <Plus className="w-4 h-4 mr-2" />
-                        Quick Add
-                    </Button>
+                    {isProfileComplete && (
+                        <Button size="sm" className="bg-gradient-to-r from-primary to-accent hover:to-primary text-primary-foreground shadow-lg hover:shadow-primary/25 transition-all duration-300 rounded-full px-6" onClick={onQuickAdd}>
+                            <Plus className="w-4 h-4 mr-2" />
+                            Quick Add
+                        </Button>
+                    )}
 
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>

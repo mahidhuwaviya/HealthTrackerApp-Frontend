@@ -58,6 +58,7 @@ const LoginPage = () => {
           id: backendUser.id || backendUser.userId || "user",
           email: backendUser.email || backendUser.userEmail || data.email,
           name: backendUser.name || backendUser.userName || data.email.split("@")[0],
+          role: backendUser.userRole || "ROLE_USER",
         };
         login(userData);
         setLocation("/dashboard");

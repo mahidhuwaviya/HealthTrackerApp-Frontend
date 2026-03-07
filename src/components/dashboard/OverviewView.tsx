@@ -14,9 +14,12 @@ import { HEALTH_DEFAULTS } from "@/config/health-constants";
 
 interface OverviewViewProps {
     data?: DashboardDTO;
+    targets: { calories: number; water: number; steps: number; workouts: number };
+    hasCompletedProfile: boolean;
+    onUpdateProfile: () => void;
 }
 
-export const OverviewView = ({ data, targets }: OverviewViewProps & { targets: { calories: number, water: number, steps: number, workouts: number } }) => {
+export const OverviewView = ({ data, targets, hasCompletedProfile, onUpdateProfile }: OverviewViewProps) => {
     // Recent Activity Logic
     const activities = [];
 
@@ -140,7 +143,7 @@ export const OverviewView = ({ data, targets }: OverviewViewProps & { targets: {
                         // Actual progress calc correction for mapping
                         const progress = stat.label === "Water" ? waterProgress : stat.progress;
 
-                        return (
+                        return hasCompletedProfile ? (
                             <Link key={index} href={stat.href}>
                                 <div className="stat-card inner-glow p-6 cursor-pointer hover:bg-muted/10 transition-colors group relative overflow-hidden">
                                     {/* Background decoration */}
@@ -175,6 +178,28 @@ export const OverviewView = ({ data, targets }: OverviewViewProps & { targets: {
                                     </div>
                                 </div>
                             </Link>
+                        ) : (
+                            <div key={index} onClick={onUpdateProfile} className="stat-card inner-glow p-6 cursor-pointer hover:bg-muted/10 transition-colors group relative overflow-hidden bg-secondary/10 border-dashed border-primary/20">
+                                <div className="absolute inset-0 bg-background/50 backdrop-blur-[2px] z-20 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                    <span className="bg-primary text-primary-foreground px-4 py-2 rounded-full font-semibold text-sm shadow-lg">Setup Profile to Unlock</span>
+                                </div>
+                                <div className="flex items-center justify-between mb-6 relative z-10 opacity-50 grayscale">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center shadow-sm">
+                                            <stat.icon className="w-6 h-6 text-muted-foreground" />
+                                        </div>
+                                        <span className="font-semibold text-lg text-muted-foreground">{stat.label}</span>
+                                    </div>
+                                </div>
+                                <div className="flex items-center justify-between relative z-10 opacity-30 grayscale">
+                                    <ProgressRing progress={0} color="hsl(var(--muted))" size={80} strokeWidth={6}>
+                                        <span className="text-sm font-bold text-muted-foreground">0%</span>
+                                    </ProgressRing>
+                                    <div className="text-right text-muted-foreground">
+                                        <div className="text-3xl font-bold tracking-tight">-</div>
+                                    </div>
+                                </div>
+                            </div>
                         )
                     })}
                 </div>

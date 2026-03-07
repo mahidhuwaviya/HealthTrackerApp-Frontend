@@ -8,6 +8,7 @@ export interface User {
     id: string;
     email: string;
     name: string;
+    role: string;
 }
 
 interface AuthContextType {
@@ -28,7 +29,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const mapUser = (rawData: BackendUser): User => ({
         id: rawData.id || rawData.userId || "user",
         email: rawData.email || rawData.userEmail || "",
-        name: rawData.name || rawData.userName || "User"
+        name: rawData.name || rawData.userName || "User",
+        role: rawData.userRole || "ROLE_USER"
     });
 
     // Check Session on Mount using React Query
@@ -39,7 +41,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             return mapUser(data);
         },
         retry: false, // Don't retry if 401
-        refetchOnWindowFocus: true, // Re-check if user focuses window (good for security)
+        refetchOnWindowFocus: false, // Disabled to prevent spam on dev environment tabbing
         staleTime: 1000 * 60 * 5 // Consider session fresh for 5 mins
     });
 
