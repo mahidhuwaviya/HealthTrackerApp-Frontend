@@ -5,6 +5,9 @@ export const API_ROUTES = {
         GOOGLE_AUTH: "/oauth2/authorization/google",
         FORGOT_PASSWORD: "/api/auth/forgetpassword",
         LOGOUT: "/api/logout",
+        GET_OTP: "/api/auth/getOtp",
+        VERIFY_OTP: "/api/auth/verifyOtp",
+        UPDATE_PASSWORD: "/api/auth/UpdatePassword",
     },
     USER: {
         INFO: "/api/userData",

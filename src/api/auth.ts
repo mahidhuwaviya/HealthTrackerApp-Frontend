@@ -35,6 +35,13 @@ export interface LoginRequest {
     password: string;
 }
 
+export interface OtpVerifyDto {
+    email: string;
+    otp: string;
+    verificationToken?: string;   // sent automatically as OtpVerifyToken cookie via withCredentials
+    newPassword: string;
+}
+
 export const authApi = {
     // Path for Sign Up
     register: async (data: RegisterRequest) => {
@@ -67,5 +74,31 @@ export const authApi = {
             console.error("Logout API failed", error);
             // Ignore error, proceed to clear frontend session
         }
-    }
+    },
+
+    // --- Forgot Password OTP Flow ---
+
+    // Step 1: Request OTP to be sent to email.
+    // Returns the full axios response so the caller can read the token from
+    // response.data (the cookie is likely HttpOnly and unreadable by JS).
+    getOtp: async (email: string) => {
+        const response = await apiClient.get(API_ROUTES.AUTH.GET_OTP, {
+            params: { email },
+        });
+        // Return both the data payload and headers so the caller can locate
+        // the verificationToken regardless of how the backend sends it.
+        return { data: response.data, headers: response.headers };
+    },
+
+    // Step 2: Verify OTP (newPassword can be empty string on this call)
+    verifyOtp: async (dto: OtpVerifyDto) => {
+        const response = await apiClient.post(API_ROUTES.AUTH.VERIFY_OTP, dto);
+        return response.data;
+    },
+
+    // Step 3: Set new password using the same DTO (newPassword filled)
+    updatePassword: async (dto: OtpVerifyDto) => {
+        const response = await apiClient.put(API_ROUTES.AUTH.UPDATE_PASSWORD, dto);
+        return response.data;
+    },
 };

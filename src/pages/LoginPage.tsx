@@ -4,6 +4,7 @@ import { Activity, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LoginForm } from "@/components/auth/LoginForm";
 import { LoginVisuals } from "@/components/auth/LoginVisuals";
+import { ForgotPasswordModal } from "@/components/auth/ForgotPasswordModal";
 import { authApi, LoginRequest, RegisterRequest, DecodedToken } from "@/api/auth";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
@@ -15,6 +16,7 @@ const LoginPage = () => {
   const [, setLocation] = useLocation();
   const [isLogin, setIsLogin] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
   const { login, isAuthenticated } = useAuth();
 
   useEffect(() => {
@@ -156,6 +158,7 @@ const LoginPage = () => {
             isLogin={isLogin}
             onSubmit={handleAuth}
             isLoading={isLoading}
+            onForgotPassword={() => setShowForgotPassword(true)}
           />
 
           {/* Toggle */}
@@ -192,6 +195,12 @@ const LoginPage = () => {
       {isLoading && (
         <GlassLoader state="fetching" message="Authenticating..." />
       )}
+
+      {/* Forgot Password multi-step modal */}
+      <ForgotPasswordModal
+        isOpen={showForgotPassword}
+        onClose={() => setShowForgotPassword(false)}
+      />
     </div>
   );
 };

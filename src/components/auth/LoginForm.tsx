@@ -12,9 +12,10 @@ interface LoginFormProps {
     isLogin: boolean;
     onSubmit: (data: any) => void;
     isLoading?: boolean;
+    onForgotPassword?: () => void;
 }
 
-export const LoginForm = ({ isLogin, onSubmit, isLoading = false }: LoginFormProps) => {
+export const LoginForm = ({ isLogin, onSubmit, isLoading = false, onForgotPassword }: LoginFormProps) => {
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -38,7 +39,11 @@ export const LoginForm = ({ isLogin, onSubmit, isLoading = false }: LoginFormPro
 
     const handleForgotPassword = (e: React.MouseEvent) => {
         e.preventDefault();
-        toast.info(UI_STRINGS.AUTH.FORGOT_PASSWORD_TOAST);
+        if (onForgotPassword) {
+            onForgotPassword();
+        } else {
+            toast.info(UI_STRINGS.AUTH.FORGOT_PASSWORD_TOAST);
+        }
     };
 
     return (
