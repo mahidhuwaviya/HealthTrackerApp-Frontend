@@ -25,7 +25,9 @@ const LoginPage = () => {
     }
   }, [isAuthenticated, setLocation]);
 
-
+  const goToDashboard = () => {
+    setLocation("/dashboard");   // navigate programmatically
+  };
 
   // Unified handler for both Login and Signup
   const handleAuth = async (data: LoginRequest | RegisterRequest) => {
@@ -36,49 +38,32 @@ const LoginPage = () => {
         // Path A: Sign In
         response = await authApi.login(data);
         toast.success("Welcome back!");
+        // goToDashboard()
+
       } else {
-        // Path B: Sign Up
-        response = await authApi.register(data as RegisterRequest);
-        // If registration auto-logs in, handle it. 
-        // If it requires duplicate login, we might want to just switch mode or auto-login.
-        // Assuming response contains token for immediate login:
+        // Path B: Sign Up (data no longer contains name)
+        response = await authApi.register({
+            email: data.email,
+            password: data.password,
+            name: data.email.split("@")[0] // Fallback name since we removed the field
+        });
         toast.success("Account created! Logging you in...");
       }
 
-      if (response && response.token) {
-        // Use Context login
-        // If backend returns user object, use it. Otherwise decode token.
-        let userData = response.user;
-
-        if (!userData) {
-          try {
-            const decoded = jwtDecode<DecodedToken>(response.token);
-            // If registration, we have the name in 'data'
-            const submittedName = !isLogin && 'name' in data ? (data as any).name : undefined;
-
-            userData = {
-              id: decoded.id || decoded.sub || "user", // Fallback to 'sub' if 'id' missing
-              email: decoded.email || data.email, // Use input email if missing in token
-              name: decoded.name || submittedName || decoded.email || "User"
-            };
-          } catch (e) {
-            console.error("Could not decode token for user data", e);
-          }
-        }
-
-        if (userData) {
-          login(userData);
-        } else {
-          console.error("Login failed: Missing user data and cannot decode token.");
-          setIsLogin(true); // Fallback to login screen
-        }
-
+      // The backend sets the access token as an HttpOnly cookie automatically.
+      // Verify auth by fetching user data (the cookie is sent via withCredentials).
+      const backendUser = await authApi.getUser();
+      if (backendUser) {
+        const userData = {
+          id: backendUser.id || backendUser.userId || "user",
+          email: backendUser.email || backendUser.userEmail || data.email,
+          name: backendUser.name || backendUser.userName || data.email.split("@")[0],
+        };
+        login(userData);
+        setLocation("/dashboard");
       } else {
-        // If no token (maybe manual approval needed?), handle appropriately
-        if (!isLogin) {
-          // Maybe just switch to login if registration doesn't return token
-          setIsLogin(true);
-        }
+        toast.error("Authentication failed. Please try again.");
+        setIsLogin(true);
       }
 
     } catch (error: any) {

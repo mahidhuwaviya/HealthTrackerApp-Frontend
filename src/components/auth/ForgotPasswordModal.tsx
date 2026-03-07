@@ -121,7 +121,7 @@ export const ForgotPasswordModal = ({ isOpen, onClose }: Props) => {
         }
         setIsLoading(true);
         try {
-            await authApi.getOtp(email);
+            await authApi.getOtp(email, "ForgotPassword");
             // Cookie is now set by backend — browser will include it automatically going forward.
             setStep("otp");
         } catch (err: any) {
@@ -158,7 +158,7 @@ export const ForgotPasswordModal = ({ isOpen, onClose }: Props) => {
                 // automatically includes the OtpVerifyToken cookie in the
                 // request headers via withCredentials:true.
             };
-            await authApi.verifyOtp(dto);
+            await authApi.verifyOtp(dto, "ForgotPassword");
             setStep("password");
         } catch (err: any) {
             const serverMsg: string = err.response?.data?.message || "";

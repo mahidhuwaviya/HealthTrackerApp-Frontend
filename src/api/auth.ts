@@ -45,8 +45,15 @@ export interface OtpVerifyDto {
 export const authApi = {
     // Path for Sign Up
     register: async (data: RegisterRequest) => {
-        console.log(data)
-        const response = await apiClient.post<AuthResponse>(API_ROUTES.AUTH.REGISTER, data);
+        // Map frontend RegisterRequest to backend UserInfoRequestDTO format
+        const payload = {
+            userEmail: data.email,
+            userName: data.name || data.email.split('@')[0], 
+            password: data.password,
+            role: "ROLE_USER" // Default role for new signups
+        };
+        console.log("Registering with payload:", payload);
+        const response = await apiClient.post<AuthResponse>(API_ROUTES.AUTH.REGISTER, payload);
         return response.data;
     },
 
@@ -76,29 +83,41 @@ export const authApi = {
         }
     },
 
-    // --- Forgot Password OTP Flow ---
+    // --- Forgot Password / Email Verification OTP Flow ---
 
     // Step 1: Request OTP to be sent to email.
-    // Returns the full axios response so the caller can read the token from
-    // response.data (the cookie is likely HttpOnly and unreadable by JS).
-    getOtp: async (email: string) => {
-        const response = await apiClient.get(API_ROUTES.AUTH.GET_OTP, {
-            params: { email },
-        });
-        // Return both the data payload and headers so the caller can locate
-        // the verificationToken regardless of how the backend sends it.
+    // Now a POST request sending the OtpVerificationRequestDTO format 
+    // with 'val' enum to specify the context (verifyEmail or ForgotPassword).
+    getOtp: async (email: string, type: "verifyEmail" | "ForgotPassword" = "verifyEmail") => {
+        const payload = {
+            email: email,
+            val: type
+        };
+        const response = await apiClient.post(API_ROUTES.AUTH.GET_OTP, payload);
         return { data: response.data, headers: response.headers };
     },
 
-    // Step 2: Verify OTP (newPassword can be empty string on this call)
-    verifyOtp: async (dto: OtpVerifyDto) => {
-        const response = await apiClient.post(API_ROUTES.AUTH.VERIFY_OTP, dto);
+    // Step 2: Verify OTP
+    verifyOtp: async (dto: OtpVerifyDto, type: "verifyEmail" | "ForgotPassword" = "verifyEmail") => {
+        const payload = {
+            email: dto.email,
+            otp: dto.otp,
+            val: type,
+            password: dto.newPassword // The backend DTO expects this, even if empty initially
+        };
+        const response = await apiClient.post(API_ROUTES.AUTH.VERIFY_OTP, payload);
         return response.data;
     },
 
     // Step 3: Set new password using the same DTO (newPassword filled)
     updatePassword: async (dto: OtpVerifyDto) => {
-        const response = await apiClient.put(API_ROUTES.AUTH.UPDATE_PASSWORD, dto);
+        const payload = {
+            email: dto.email,
+            otp: dto.otp,
+            val: "ForgotPassword",
+            password: dto.newPassword
+        };
+        const response = await apiClient.put(API_ROUTES.AUTH.UPDATE_PASSWORD, payload);
         return response.data;
     },
 };
