@@ -33,20 +33,20 @@ export const ProfileStepGoals = ({
         <div className={cn("space-y-6 animate-fade-in", disabledClass)}>
             <div className="space-y-3">
                 <Label className="text-lg font-semibold">What is your main goal?</Label>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     {GOAL_OPTIONS.map((goal) => (
                         <div
                             key={goal.value}
                             onClick={() => updateData("mainGoal", goal.value)}
                             className={cn(
-                                "flex flex-col items-center justify-center p-6 rounded-2xl border cursor-pointer transition-all duration-300 relative overflow-hidden group",
+                                "flex flex-col items-center justify-center p-4 sm:p-6 rounded-2xl border cursor-pointer transition-all duration-300 relative overflow-hidden group",
                                 data.mainGoal === goal.value
                                     ? "bg-primary/10 border-primary shadow-[0_0_20px_rgba(212,197,85,0.15)]"
                                     : "bg-secondary/30 border-transparent hover:border-primary/30"
                             )}
                         >
-                            <goal.icon className={cn("w-8 h-8 mb-3 transition-transform duration-500 group-hover:scale-110", data.mainGoal === goal.value ? "text-primary" : "text-muted-foreground")} />
-                            <p className={cn("font-bold text-center transition-colors", data.mainGoal === goal.value ? "text-primary" : "text-foreground")}>{goal.label}</p>
+                            <goal.icon className={cn("w-6 h-6 sm:w-8 sm:h-8 mb-2 sm:mb-3 transition-transform duration-500 group-hover:scale-110", data.mainGoal === goal.value ? "text-primary" : "text-muted-foreground")} />
+                            <p className={cn("font-bold text-center transition-colors text-sm sm:text-base", data.mainGoal === goal.value ? "text-primary" : "text-foreground")}>{goal.label}</p>
                             {data.mainGoal === goal.value && <div className="absolute top-2 right-2 p-1 bg-primary rounded-full"><Check className="w-3 h-3 text-primary-foreground" /></div>}
                         </div>
                     ))}
@@ -74,7 +74,7 @@ export const ProfileStepGoals = ({
                 </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                 <div className="space-y-2">
                     <div className="flex justify-between items-center">
                         <Label htmlFor="targetWeight">Target Weight</Label>
@@ -104,7 +104,7 @@ export const ProfileStepGoals = ({
                 </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                 <div className="space-y-2">
                     <div className="flex justify-between items-center">
                         <Label htmlFor="dailyWaterGoalMl">Daily Water Goal (ml)</Label>

@@ -51,20 +51,20 @@ export const ProfileStepLifestyle = ({
 
             <div className="space-y-4">
                 <Label className="text-lg font-semibold">Workout Environment</Label>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     {(Object.keys(ENUM_LABELS.WORKOUT_ENVIRONMENTS) as ExerciseType[]).map((env) => (
                         <div
                             key={env}
                             onClick={() => toggleArrayItem("workoutEnv", env)}
                             className={cn(
-                                "group p-5 rounded-2xl border cursor-pointer text-center transition-all duration-300 relative",
+                                "group p-4 sm:p-5 rounded-2xl border cursor-pointer text-center transition-all duration-300 relative",
                                 data.workoutEnv.includes(env)
                                     ? "bg-primary/20 border-primary shadow-[0_0_20px_rgba(212,197,85,0.1)]"
                                     : "bg-secondary/30 border-transparent hover:border-primary/30"
                             )}
                         >
                             {/* @ts-ignore */}
-                            <p className={cn("font-bold transition-colors", data.workoutEnv.includes(env) ? "text-primary" : "text-muted-foreground")}>{ENUM_LABELS.WORKOUT_ENVIRONMENTS[env]}</p>
+                            <p className={cn("font-bold transition-colors text-sm sm:text-base", data.workoutEnv.includes(env) ? "text-primary" : "text-muted-foreground")}>{ENUM_LABELS.WORKOUT_ENVIRONMENTS[env]}</p>
                             {data.workoutEnv.includes(env) && <div className="absolute -top-1 -right-1 p-1 bg-primary rounded-full animate-in zoom-in"><Check className="w-3 h-3 text-primary-foreground" /></div>}
                         </div>
                     ))}

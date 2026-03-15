@@ -68,7 +68,7 @@ export const ProfileStepFoundation = ({
                 </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                 {/* WEIGHT */}
                 <div className="space-y-2">
                     <div className="flex justify-between items-center">

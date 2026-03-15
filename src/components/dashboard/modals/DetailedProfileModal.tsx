@@ -325,7 +325,7 @@ const DetailedProfileModal = ({ isOpen, onClose }: DetailedProfileModalProps) =>
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-background/90 backdrop-blur-md" />
 
-            <div className="relative w-[90%] md:w-full md:max-w-4xl h-auto max-h-[85dvh] md:h-[600px] glass-card flex flex-col md:flex-row overflow-hidden shadow-2xl animate-scale-in">
+            <div className="relative w-[95%] sm:w-[90%] md:w-full md:max-w-4xl max-h-[90vh] md:h-[600px] glass-card flex flex-col md:flex-row overflow-hidden shadow-2xl animate-scale-in">
 
                 {/* --- LEFT SIDE --- */}
                 <div className="w-1/3 bg-secondary/30 border-r border-primary/10 p-8 flex flex-col justify-between hidden md:flex">
@@ -370,7 +370,7 @@ const DetailedProfileModal = ({ isOpen, onClose }: DetailedProfileModalProps) =>
                 </div>
 
                 {/* --- RIGHT SIDE --- */}
-                <div className="flex-1 flex flex-col bg-background/50 relative">
+                <div className="flex-1 flex flex-col min-h-0 bg-background/50 relative">
 
                     {/* INITIAL LOADING OVERLAY */}
                     {isLoading && (
@@ -382,7 +382,7 @@ const DetailedProfileModal = ({ isOpen, onClose }: DetailedProfileModalProps) =>
                         <GlassLoader state="processing" message="Updating Health Insights..." />
                     )}
 
-                    <div className="flex-1 p-4 md:p-8 overflow-y-auto custom-scrollbar">
+                    <div className="flex-1 p-4 md:p-8 overflow-y-auto min-h-0 custom-scrollbar relative z-10 w-full">
 
                         {/* Top Action Bar */}
                         <div className="flex justify-between items-center mb-6">
@@ -449,7 +449,7 @@ const DetailedProfileModal = ({ isOpen, onClose }: DetailedProfileModalProps) =>
                     </div>
 
                     {/* --- FOOTER --- */}
-                    <div className="p-6 border-t border-primary/10 bg-secondary/20 flex justify-between items-center shrink-0">
+                    <div className="p-4 sm:p-6 border-t border-primary/10 bg-secondary/20 flex justify-between items-center shrink-0 w-full z-20">
                         {step > 1 ? (
                             <Button variant="ghost" onClick={handleBack} disabled={saveMutation.isPending} className="text-muted-foreground hover:text-foreground">
                                 <ChevronLeft className="w-4 h-4 mr-2" /> Back
