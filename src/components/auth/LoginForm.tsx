@@ -7,6 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { authApi } from "@/api/auth";
 import { toast } from "sonner";
 import { AUTH_VALIDATION, UI_STRINGS } from "@/config/health-constants";
+import { extractErrorMessage } from "@/utils/errorHandling";
 
 interface LoginFormProps {
     isLogin: boolean;
@@ -86,10 +87,10 @@ export const LoginForm = ({ isLogin, onSubmit, isLoading = false, onForgotPasswo
             await authApi.getOtp(email, "verifyEmail");
             toast.success("Verification code sent to your email!");
             setSignupStep("otp");
-            setTimer(60); // 5 minutes = 300 seconds
+            setTimer(300); // 5 minutes = 300 seconds
         } catch (error: any) {
             console.error("Failed to send OTP:", error);
-            const msg: string = error.response?.data?.message || "Failed to send verification code. Please try again.";
+            const msg = extractErrorMessage(error);
             toast.error(msg);
 
             // If email already exists, take them back to step 1
@@ -103,7 +104,7 @@ export const LoginForm = ({ isLogin, onSubmit, isLoading = false, onForgotPasswo
     };
 
     const handleVerifyOtp = async () => {
-        if (otp.length < 4) {
+        if (otp.length < 6) {
             toast.error("Please enter the verification code.");
             return;
         }
@@ -116,7 +117,7 @@ export const LoginForm = ({ isLogin, onSubmit, isLoading = false, onForgotPasswo
             setTimer(0); // clear timer on success
         } catch (error: any) {
             console.error("Failed to verify OTP:", error);
-            const msg = error.response?.data?.message || "Invalid or expired verification code.";
+            const msg = extractErrorMessage(error);
             toast.error(msg);
         } finally {
             setIsVerifying(false);

@@ -86,7 +86,7 @@ export const WaterLogPopup = ({ isOpen, onClose, currentIntake: initialIntake, d
 
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-            <DialogContent className="glass-card border-primary/10 sm:max-w-md">
+            <DialogContent className="glass-card border-primary/10 sm:max-w-md max-w-[95vw] max-h-[90dvh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                         <Droplets className="w-5 h-5 text-water" /> Log Water Intake

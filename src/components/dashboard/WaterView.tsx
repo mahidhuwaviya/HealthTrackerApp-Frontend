@@ -1,3 +1,4 @@
+import { formatDashboardDate } from "@/utils/dateUtils";
 import { Droplets, Clock, Trash2 } from "lucide-react";
 // import { WeeklyProgressChart } from "@/components/dashboard/DashboardCharts";
 import { Button } from "@/components/ui/button";
@@ -194,7 +195,7 @@ export const WaterView = ({
                                                         <td className="px-5 py-3 text-muted-foreground group-hover:text-foreground transition-colors">
                                                             <div className="flex items-center gap-2">
                                                                 <Clock className="w-3 h-3 text-water" />
-                                                                {log.logDate} {log.logTime}
+                                                                {formatDashboardDate(log.logDate, log.logTime)}
                                                             </div>
                                                         </td>
                                                         <td className="px-5 py-3 text-right font-medium">{log.amount} ml</td>

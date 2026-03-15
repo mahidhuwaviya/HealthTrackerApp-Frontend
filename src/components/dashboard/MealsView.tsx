@@ -1,3 +1,4 @@
+import { formatDashboardDate } from "@/utils/dateUtils";
 import { Utensils, Clock, Trash2 } from "lucide-react";
 // import { WeeklyProgressChart } from "@/components/dashboard/DashboardCharts";
 import { Button } from "@/components/ui/button";
@@ -66,7 +67,7 @@ export const MealsView = ({
         { label: "Carbs", value: Math.round(mealLogs.reduce((s: number, m: any) => s + (m.carbs || 0), 0) || (displayData as any)?.totalDailyCarbs || 0), unit: "g", color: "bg-green-500" },
         { label: "Fats", value: Math.round(mealLogs.reduce((s: number, m: any) => s + (m.fats || 0), 0) || (displayData as any)?.totalDailyFats || 0), unit: "g", color: "bg-yellow-500" },
     ];
-
+    console.log("mealLogs", mealLogs);
     const handleDeleteMeal = async (meal: any) => {
         if (!meal?.mealEntryId) return;
         setDeletingId(meal.mealEntryId);
@@ -209,7 +210,7 @@ export const MealsView = ({
                                     <table className="w-full text-sm">
                                         <thead className="bg-calories/5">
                                             <tr>
-                                                <th className="px-5 py-3 text-left font-semibold text-calories/80 uppercase tracking-wider text-xs border-b border-white/5">Time</th>
+                                                <th className="px-5 py-3 text-left font-semibold text-calories/80 uppercase tracking-wider text-xs border-b border-white/5">Date / Time</th>
                                                 <th className="px-5 py-3 text-left font-semibold text-calories/80 uppercase tracking-wider text-xs border-b border-white/5">Food</th>
                                                 <th className="px-5 py-3 text-left font-semibold text-calories/80 uppercase tracking-wider text-xs border-b border-white/5 w-[100px]">Type</th>
                                                 <th className="px-5 py-3 text-right font-semibold text-calories/80 uppercase tracking-wider text-xs border-b border-white/5">Qty</th>
@@ -233,10 +234,12 @@ export const MealsView = ({
                                             ) : (
                                                 mealLogs.map((meal: any, index: number) => (
                                                     <tr key={index} className="hover:bg-calories/5 transition-colors group">
-                                                        <td className="px-5 py-3 text-muted-foreground group-hover:text-foreground transition-colors">
+                                                        <td className="px-5 py-3 text-muted-foreground group-hover:text-foreground transition-colors min-w-[140px]">
                                                             <div className="flex items-center gap-2">
                                                                 <Clock className="w-3 h-3 text-calories" />
-                                                                {meal.date || meal.entryTime || '-'}
+                                                                {meal.date || meal.logDate || meal.entryTime || meal.logTime || meal.logtime ? (
+                                                                    formatDashboardDate(meal.date || meal.logDate || meal.entryTime || meal.logTime || meal.logtime, meal.logTime || meal.logtime || meal.time)
+                                                                ) : '-'}
                                                             </div>
                                                         </td>
                                                         <td className="px-5 py-3 font-medium text-foreground">{meal.foodName}</td>

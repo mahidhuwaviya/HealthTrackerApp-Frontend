@@ -168,7 +168,9 @@ const DashboardPage = () => {
                         <h1 className="text-2xl md:text-3xl 2xl:text-5xl font-bold mb-2 font-instrument">
                             Welcome back, <span className="gradient-text">{user?.name || "User"}</span>!
                         </h1>
-                        <p className="text-muted-foreground 2xl:text-xl font-instrument">Here's your health summary for today</p>
+                        <p className="text-muted-foreground 2xl:text-xl font-instrument">
+                            Here's your health summary for <span className="font-semibold text-foreground">{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</span>
+                        </p>
                     </div>
 
                     {renderContent()}

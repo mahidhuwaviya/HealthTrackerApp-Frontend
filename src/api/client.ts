@@ -1,6 +1,8 @@
 import axios from 'axios';
 import { toast } from "sonner"; // Using Sonner as configured in App.tsx
 
+import { extractErrorMessage } from "@/utils/errorHandling";
+
 // Default to environment variable. Fail if not set.
 const BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -43,15 +45,11 @@ apiClient.interceptors.response.use(
             toast.error("You do not have permission to perform this action.");
         }
 
-        // Handle 500 Server Errors
-        else if (error.response?.status >= 500) {
-            toast.error("Server error. Please try again later.");
-        }
-
-        // Handle other 4xx errors (e.g. 400 Bad Request) - show specific message if available
-        else if (error.response?.status >= 400) {
-            const message = error.response?.data?.message || "An error occurred.";
-            toast.error(message);
+        // Handle 500 Server Errors & 4xx Errors (Except 401 and 403 specific overrides above)
+        // using the robust Error Extractor
+        else if (error.response?.status >= 400 || !error.response) {
+             const message = extractErrorMessage(error);
+             toast.error(message);
         }
 
         return Promise.reject(error);

@@ -1,3 +1,4 @@
+import { formatDashboardDate } from "@/utils/dateUtils";
 import { useState } from "react";
 import { Footprints, Clock, Plus } from "lucide-react";
 import { TrendLineChart } from "@/components/dashboard/DashboardCharts";
@@ -202,7 +203,7 @@ export const StepsView = ({
                                                         <td className="px-5 py-3 text-muted-foreground group-hover:text-foreground transition-colors">
                                                             <div className="flex items-center gap-2">
                                                                 <Clock className="w-3 h-3 text-steps" />
-                                                                {log.date || log.logDate || "—"}
+                                                                {log.date || log.logDate ? formatDashboardDate(log.date || log.logDate) : "—"}
                                                             </div>
                                                         </td>
                                                         <td className="px-5 py-3 text-right font-medium text-steps">

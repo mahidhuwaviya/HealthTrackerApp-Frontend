@@ -1,3 +1,4 @@
+import { formatDashboardDate } from "@/utils/dateUtils";
 import { Dumbbell, Plus, Clock, Flame, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ProgressRing from "@/components/ui/ProgressRing";
@@ -201,7 +202,7 @@ export const WorkoutsView = ({
                                     <tr>
                                         <th className="px-5 py-3 text-left font-semibold text-primary/80 uppercase tracking-wider text-xs border-b border-white/5">Name</th>
                                         <th className="px-5 py-3 text-left font-semibold text-primary/80 uppercase tracking-wider text-xs border-b border-white/5">Type</th>
-                                        <th className="px-5 py-3 text-left font-semibold text-primary/80 uppercase tracking-wider text-xs border-b border-white/5">Time</th>
+                                        <th className="px-5 py-3 text-left font-semibold text-primary/80 uppercase tracking-wider text-xs border-b border-white/5">Date / Time</th>
                                         <th className="px-5 py-3 text-right font-semibold text-primary/80 uppercase tracking-wider text-xs border-b border-white/5">Sets</th>
                                         <th className="px-5 py-3 text-right font-semibold text-primary/80 uppercase tracking-wider text-xs border-b border-white/5">Reps</th>
                                         <th className="px-5 py-3 text-right font-semibold text-primary/80 uppercase tracking-wider text-xs border-b border-white/5">Weight</th>
@@ -241,10 +242,10 @@ export const WorkoutsView = ({
                                                         {(log.workoutType || log.type || '').toLowerCase().replace(/_/g, ' ')}
                                                     </span>
                                                 </td>
-                                                <td className="px-5 py-3 text-muted-foreground text-xs">
+                                                <td className="px-5 py-3 text-muted-foreground text-xs min-w-[140px]">
                                                     <div className="flex items-center gap-1">
                                                         <Clock className="w-3 h-3" />
-                                                        {log.logTime ? new Date(log.logTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '-'}
+                                                        {log.logTime ? formatDashboardDate(log.logTime) : '-'}
                                                     </div>
                                                 </td>
                                                 <td className="px-5 py-3 text-right text-muted-foreground">{log.sets ?? 0}</td>

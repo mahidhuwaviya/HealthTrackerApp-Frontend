@@ -154,7 +154,7 @@ export const MealEntryPopup: React.FC<MealEntryPopupProps> = ({ isOpen, onClose 
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="sm:max-w-[425px] max-w-[95vw] max-h-[90dvh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle>Log Meal</DialogTitle>
                 </DialogHeader>

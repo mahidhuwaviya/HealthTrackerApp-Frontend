@@ -21,7 +21,7 @@ interface UpdateGoalsModalProps {
 export const UpdateGoalsModal = ({ open, onOpenChange, targets, setTargets }: UpdateGoalsModalProps) => {
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="glass-card border-primary/10 sm:max-w-md">
+            <DialogContent className="glass-card border-primary/10 sm:max-w-md max-w-[95vw] max-h-[90dvh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle className="gradient-text">Update Goals</DialogTitle>
                 </DialogHeader>

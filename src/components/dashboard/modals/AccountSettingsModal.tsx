@@ -7,6 +7,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { authApi } from "@/api/auth";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { extractErrorMessage } from "@/utils/errorHandling";
 
 interface AccountSettingsModalProps {
     isOpen: boolean;
@@ -19,16 +20,16 @@ export function AccountSettingsModal({ isOpen, onClose }: AccountSettingsModalPr
     const [activeTab, setActiveTab] = useState("overview");
 
     // Flow States
-    const [passwordStep, setPasswordStep] = useState<"req" | "otp" | "new">("req");
+    const [passwordStep, setPasswordStep] = useState<"req" | "otp">("req");
     const [emailStep, setEmailStep] = useState<"req" | "otp" | "new">("req");
-    
+
     // Auth Input States
     const [newUsername, setNewUsername] = useState("");
-    const [otpStr, setOtpStr] = useState(["", "", "", ""]);
+    const [otpStr, setOtpStr] = useState(["", "", "", "", "", ""]);
     const [newPasswordValue, setNewPasswordValue] = useState("");
     const [newEmailValue, setNewEmailValue] = useState("");
     const [authLoading, setAuthLoading] = useState(false);
-    
+
     // Focus Refs
     const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
 
@@ -37,7 +38,7 @@ export function AccountSettingsModal({ isOpen, onClose }: AccountSettingsModalPr
         const next = [...otpStr];
         next[index] = value;
         setOtpStr(next);
-        if (value && index < 3) {
+        if (value && index < 5) {
             otpRefs.current[index + 1]?.focus();
         }
     };
@@ -57,28 +58,14 @@ export function AccountSettingsModal({ isOpen, onClose }: AccountSettingsModalPr
             toast.success("OTP sent to your email!");
             setPasswordStep("otp");
         } catch (err: any) {
-            toast.error(err.response?.data?.message || "Failed to send OTP");
-        } finally {
-            setAuthLoading(false);
-        }
-    };
-
-    const handleVerifyPasswordOtp = async () => {
-        const otpString = otpStr.join("");
-        if (otpString.length < 4) return;
-        setAuthLoading(true);
-        try {
-            await authApi.verifyOtp({ email: user!.email!, otp: otpString, newPassword: "" }, "ForgotPassword");
-            toast.success("OTP verified!");
-            setPasswordStep("new");
-        } catch (err: any) {
-            toast.error(err.response?.data?.message || "Invalid OTP");
+            toast.error(extractErrorMessage(err));
         } finally {
             setAuthLoading(false);
         }
     };
 
     const handleUpdatePasswordFinal = async () => {
+        if (otpStr.join("").length < 6) return toast.error("Please enter the 6-digit OTP");
         if (newPasswordValue.length < 6) return toast.error("Password must be at least 6 characters");
         setAuthLoading(true);
         try {
@@ -87,7 +74,7 @@ export function AccountSettingsModal({ isOpen, onClose }: AccountSettingsModalPr
             resetFlows();
             setActiveTab("overview");
         } catch (err: any) {
-            toast.error(err.response?.data?.message || "Failed to update password");
+            toast.error(extractErrorMessage(err));
         } finally {
             setAuthLoading(false);
         }
@@ -101,11 +88,11 @@ export function AccountSettingsModal({ isOpen, onClose }: AccountSettingsModalPr
             // Send OTP to NEW email (since we are verifying they own it to switch)
             // Note: Backend might expect the old email here depending on implementation, but typically OTP goes to the new target.
             // Using the new email for getOtp explicitly.
-            await authApi.getOtp(newEmailValue, "verifyEmail");
+            await authApi.getOtp(newEmailValue, "UpdateEmail");
             toast.success("Verification code sent to " + newEmailValue);
             setEmailStep("otp");
         } catch (err: any) {
-            toast.error(err.response?.data?.message || "Failed to send OTP");
+            toast.error(extractErrorMessage(err));
         } finally {
             setAuthLoading(false);
         }
@@ -113,7 +100,7 @@ export function AccountSettingsModal({ isOpen, onClose }: AccountSettingsModalPr
 
     const handleVerifyAndUpdateEmail = async () => {
         const otpString = otpStr.join("");
-        if (otpString.length < 4) return;
+        if (otpString.length < 6) return;
         setAuthLoading(true);
         try {
             // The backend endpoint UpdateEmail expects OldEmail query param, and Otp Verify Dto with new email & otp.
@@ -123,14 +110,14 @@ export function AccountSettingsModal({ isOpen, onClose }: AccountSettingsModalPr
             resetFlows();
             setActiveTab("overview");
         } catch (err: any) {
-            toast.error(err.response?.data?.message || "Verification Failed");
+            toast.error(extractErrorMessage(err));
         } finally {
             setAuthLoading(false);
         }
     };
 
     const resetFlows = () => {
-        setOtpStr(["", "", "", ""]);
+        setOtpStr(["", "", "", "", "", ""]);
         setNewPasswordValue("");
         setNewEmailValue("");
         setPasswordStep("req");
@@ -146,7 +133,7 @@ export function AccountSettingsModal({ isOpen, onClose }: AccountSettingsModalPr
             setNewUsername("");
         },
         onError: (error: any) => {
-            toast.error(error?.response?.data || "Failed to update username");
+            toast.error(extractErrorMessage(error));
         }
     });
 
@@ -158,7 +145,7 @@ export function AccountSettingsModal({ isOpen, onClose }: AccountSettingsModalPr
             onClose();
         },
         onError: (error: any) => {
-            toast.error(error?.response?.data || "Failed to delete account");
+            toast.error(extractErrorMessage(error));
         }
     });
 
@@ -188,7 +175,7 @@ export function AccountSettingsModal({ isOpen, onClose }: AccountSettingsModalPr
         }}>
             <DialogContent className="sm:max-w-[700px] p-0 overflow-hidden glass-card border-white/10">
                 <div className="flex flex-col sm:flex-row h-[500px]">
-                    
+
                     {/* Sidebar Tabs */}
                     <Tabs value={activeTab} onValueChange={(val) => {
                         resetFlows();
@@ -200,7 +187,7 @@ export function AccountSettingsModal({ isOpen, onClose }: AccountSettingsModalPr
                                     Account
                                 </DialogTitle>
                             </DialogHeader>
-                            
+
                             <TabsList className="flex flex-col h-auto bg-transparent items-start p-0 gap-1 w-full">
                                 <TabsTrigger value="overview" className="w-full justify-start gap-2 data-[state=active]:bg-primary/20 data-[state=active]:text-primary rounded-lg">
                                     <User className="w-4 h-4" /> Overview
@@ -223,12 +210,12 @@ export function AccountSettingsModal({ isOpen, onClose }: AccountSettingsModalPr
 
                         {/* Content Area */}
                         <div className="flex-1 p-6 overflow-y-auto">
-                            
+
                             <TabsContent value="overview" className="mt-0 space-y-6">
                                 <div>
                                     <h3 className="text-lg font-semibold mb-2">My Profile</h3>
                                     <p className="text-sm text-muted-foreground mb-6">Manage your core account details and secure your data.</p>
-                                    
+
                                     <div className="space-y-4">
                                         <div className="p-4 rounded-xl bg-black/20 border border-white/5 flex flex-col">
                                             <span className="text-sm text-muted-foreground font-medium mb-1">Current Username</span>
@@ -253,18 +240,18 @@ export function AccountSettingsModal({ isOpen, onClose }: AccountSettingsModalPr
                                 <div>
                                     <h3 className="text-lg font-semibold mb-2">Update Username</h3>
                                     <p className="text-sm text-muted-foreground mb-6">Choose a new display name. This is how others will see you.</p>
-                                    
+
                                     <div className="space-y-4">
                                         <div className="space-y-2">
                                             <label className="text-sm font-medium">New Username</label>
-                                            <input 
+                                            <input
                                                 className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all placeholder:text-muted-foreground"
                                                 placeholder="e.g. FitHero99"
                                                 value={newUsername}
                                                 onChange={(e) => setNewUsername(e.target.value)}
                                             />
                                         </div>
-                                        <Button 
+                                        <Button
                                             className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-xl"
                                             onClick={() => updateUsernameMutation.mutate(newUsername)}
                                             disabled={!newUsername || newUsername === user?.name || updateUsernameMutation.isPending}
@@ -279,12 +266,12 @@ export function AccountSettingsModal({ isOpen, onClose }: AccountSettingsModalPr
                                 <div>
                                     <h3 className="text-lg font-semibold mb-2">Update Email</h3>
                                     <p className="text-sm text-muted-foreground mb-6">Transfer your account to a new email address. Requires Verification.</p>
-                                    
+
                                     {emailStep === "req" && (
                                         <div className="space-y-4 animate-in slide-in-from-right-4">
                                             <div className="space-y-2">
                                                 <label className="text-sm font-medium">New Email Address</label>
-                                                <input 
+                                                <input
                                                     type="email"
                                                     className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all placeholder:text-muted-foreground"
                                                     placeholder="new@example.com"
@@ -292,7 +279,7 @@ export function AccountSettingsModal({ isOpen, onClose }: AccountSettingsModalPr
                                                     onChange={(e) => setNewEmailValue(e.target.value)}
                                                 />
                                             </div>
-                                            <Button 
+                                            <Button
                                                 className="w-full"
                                                 onClick={handleRequestEmailOtp}
                                                 disabled={!newEmailValue || !newEmailValue.includes("@") || authLoading}
@@ -304,9 +291,9 @@ export function AccountSettingsModal({ isOpen, onClose }: AccountSettingsModalPr
 
                                     {emailStep === "otp" && (
                                         <div className="space-y-4 animate-in slide-in-from-right-4 text-center">
-                                            <p className="text-sm mb-4">Enter the 4-digit code sent to <br/><span className="font-semibold">{newEmailValue}</span></p>
+                                            <p className="text-sm mb-4">Enter the 6-digit code sent to <br /><span className="font-semibold">{newEmailValue}</span></p>
                                             {renderOtpInputs()}
-                                            <Button 
+                                            <Button
                                                 className="w-full"
                                                 onClick={handleVerifyAndUpdateEmail}
                                                 disabled={otpStr.join("").length < 4 || authLoading}
@@ -323,14 +310,14 @@ export function AccountSettingsModal({ isOpen, onClose }: AccountSettingsModalPr
                                 <div>
                                     <h3 className="text-lg font-semibold mb-2">Security</h3>
                                     <p className="text-sm text-muted-foreground mb-6">Reset your password via Email OTP securely.</p>
-                                    
+
                                     {passwordStep === "req" && (
                                         <div className="space-y-4 animate-in slide-in-from-right-4">
                                             <div className="p-4 rounded-xl bg-primary/10 border border-primary/20 flex flex-col items-center justify-center text-center gap-2 mb-4">
                                                 <Mail className="w-8 h-8 text-primary" />
-                                                <p className="text-sm font-medium px-4">We will send a one-time 4-digit code to your registered email: <strong>{user?.email}</strong></p>
+                                                <p className="text-sm font-medium px-4">We will send a one-time 6-digit code to your registered email: <strong>{user?.email}</strong></p>
                                             </div>
-                                            <Button 
+                                            <Button
                                                 className="w-full"
                                                 onClick={handleRequestPasswordOtp}
                                                 disabled={authLoading}
@@ -342,24 +329,11 @@ export function AccountSettingsModal({ isOpen, onClose }: AccountSettingsModalPr
 
                                     {passwordStep === "otp" && (
                                         <div className="space-y-4 animate-in slide-in-from-right-4 text-center">
-                                            <p className="text-sm mb-4">Enter the 4-digit verification code</p>
+                                            <p className="text-sm mb-4">Enter the 6-digit verification code</p>
                                             {renderOtpInputs()}
-                                            <Button 
-                                                className="w-full"
-                                                onClick={handleVerifyPasswordOtp}
-                                                disabled={otpStr.join("").length < 4 || authLoading}
-                                            >
-                                                {authLoading ? "Verifying..." : "Verify OTP"}
-                                            </Button>
-                                            <button onClick={() => setPasswordStep("req")} className="text-sm text-primary hover:underline mt-2">Resend Code</button>
-                                        </div>
-                                    )}
-
-                                    {passwordStep === "new" && (
-                                        <div className="space-y-4 animate-in slide-in-from-right-4">
-                                            <div className="space-y-2">
+                                            <div className="space-y-2 text-left">
                                                 <label className="text-sm font-medium">Enter New Password</label>
-                                                <input 
+                                                <input
                                                     type="password"
                                                     className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all placeholder:text-muted-foreground"
                                                     placeholder="••••••••"
@@ -367,13 +341,14 @@ export function AccountSettingsModal({ isOpen, onClose }: AccountSettingsModalPr
                                                     onChange={(e) => setNewPasswordValue(e.target.value)}
                                                 />
                                             </div>
-                                            <Button 
+                                            <Button
                                                 className="w-full"
                                                 onClick={handleUpdatePasswordFinal}
-                                                disabled={newPasswordValue.length < 6 || authLoading}
+                                                disabled={otpStr.join("").length < 6 || newPasswordValue.length < 6 || authLoading}
                                             >
-                                                {authLoading ? "Updating..." : "Set New Password"}
+                                                {authLoading ? "Updating..." : "Update Password"}
                                             </Button>
+                                            <button onClick={() => setPasswordStep("req")} className="text-sm text-primary hover:underline mt-2">Resend Code</button>
                                         </div>
                                     )}
                                 </div>
@@ -385,12 +360,12 @@ export function AccountSettingsModal({ isOpen, onClose }: AccountSettingsModalPr
                                         <AlertTriangle className="w-5 h-5" /> Danger Zone
                                     </h3>
                                     <p className="text-sm text-muted-foreground mb-6">Permanently remove your personal account and all associated health data.</p>
-                                    
+
                                     <div className="p-4 rounded-xl bg-destructive/10 border border-destructive/20 space-y-4">
                                         <p className="text-sm text-destructive font-medium">
                                             This action is absolutely irreversible. Once deleted, your meals, workouts, and track history cannot be recovered.
                                         </p>
-                                        <Button 
+                                        <Button
                                             variant="destructive"
                                             className="w-full font-bold shadow-lg shadow-destructive/20"
                                             onClick={() => {

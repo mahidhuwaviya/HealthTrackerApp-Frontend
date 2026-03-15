@@ -9,11 +9,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { authApi, OtpVerifyDto } from "@/api/auth";
 import { AUTH_VALIDATION } from "@/config/health-constants";
+import { extractErrorMessage } from "@/utils/errorHandling";
 
 /* ─────────────────────────────────────────────────────────
    Types
 ───────────────────────────────────────────────────────── */
-type Step = "email" | "otp" | "password" | "success";
+type Step = "email" | "otp" | "success";
 
 interface Props {
     isOpen: boolean;
@@ -57,7 +58,7 @@ export const ForgotPasswordModal = ({ isOpen, onClose }: Props) => {
     const [error, setError] = useState<string | null>(null);
 
     // ── OTP step ──────────────────────────────────────────
-    const [otp, setOtp] = useState(["", "", "", ""]);
+    const [otp, setOtp] = useState(["", "", "", "", "", ""]);
     const [timeLeft, setTimeLeft] = useState(OTP_SECONDS);
     const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
     const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -70,7 +71,7 @@ export const ForgotPasswordModal = ({ isOpen, onClose }: Props) => {
     const resetAll = useCallback(() => {
         setStep("email");
         setEmail("");
-        setOtp(["", "", "", ""]);
+        setOtp(["", "", "", "", "", ""]);
         setTimeLeft(OTP_SECONDS);
         setNewPassword("");
         setShowPassword(false);
@@ -125,64 +126,26 @@ export const ForgotPasswordModal = ({ isOpen, onClose }: Props) => {
             // Cookie is now set by backend — browser will include it automatically going forward.
             setStep("otp");
         } catch (err: any) {
-            const msg =
-                err.response?.data?.message ||
-                "Failed to send OTP. Please check your email and try again.";
-            setError(msg);
+            setError(extractErrorMessage(err));
         } finally {
             setIsLoading(false);
         }
     };
 
 
-    // Step 1 → 2: Verify OTP
+    // Step 1 → success: Update password
     // OtpVerifyToken is sent automatically as a cookie (withCredentials:true).
-    const handleVerifyOtp = async () => {
+    const handleUpdatePassword = async () => {
         setError(null);
         const otpString = otp.join("");
-        if (otpString.length < 4) {
-            setError("Please enter all 4 digits of your OTP.");
+        if (otpString.length < 6) {
+            setError("Please enter all 6 digits of your OTP.");
             return;
         }
         if (timeLeft === 0) {
             setError("Your OTP has expired. Please request a new one.");
             return;
         }
-        setIsLoading(true);
-        try {
-            const dto: OtpVerifyDto = {
-                email,
-                otp: otpString,
-                newPassword: "",
-                // verificationToken is NOT sent in the body — the browser
-                // automatically includes the OtpVerifyToken cookie in the
-                // request headers via withCredentials:true.
-            };
-            await authApi.verifyOtp(dto, "ForgotPassword");
-            setStep("password");
-        } catch (err: any) {
-            const serverMsg: string = err.response?.data?.message || "";
-            const lowerMsg = serverMsg.toLowerCase();
-            if (lowerMsg.includes("expir")) {
-                setError("OTP has expired. Please go back and request a new one.");
-            } else if (
-                lowerMsg.includes("invalid") ||
-                lowerMsg.includes("incorrect") ||
-                lowerMsg.includes("wrong")
-            ) {
-                setError("Invalid code. Please double-check and try again.");
-            } else {
-                setError(serverMsg || "Verification failed. Please try again.");
-            }
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    // Step 2 → success: Update password
-    // OtpVerifyToken is sent automatically as a cookie (withCredentials:true).
-    const handleUpdatePassword = async () => {
-        setError(null);
         if (newPassword.length < AUTH_VALIDATION.MIN_PASSWORD_LENGTH) {
             setError(`Password must be at least ${AUTH_VALIDATION.MIN_PASSWORD_LENGTH} characters.`);
             return;
@@ -208,10 +171,7 @@ export const ForgotPasswordModal = ({ isOpen, onClose }: Props) => {
                 }
             }, 2200);
         } catch (err: any) {
-            const msg =
-                err.response?.data?.message ||
-                "Failed to update password. Please try again.";
-            setError(msg);
+            setError(extractErrorMessage(err));
         } finally {
             setIsLoading(false);
         }
@@ -225,7 +185,7 @@ export const ForgotPasswordModal = ({ isOpen, onClose }: Props) => {
         const next = [...otp];
         next[index] = value;
         setOtp(next);
-        if (value && index < 3) {
+        if (value && index < 5) {
             otpRefs.current[index + 1]?.focus();
         }
     };
@@ -238,12 +198,12 @@ export const ForgotPasswordModal = ({ isOpen, onClose }: Props) => {
 
     const handleOtpPaste = (e: React.ClipboardEvent) => {
         e.preventDefault();
-        const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 4);
+        const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
         if (!pasted) return;
-        const next = ["", "", "", ""];
+        const next = ["", "", "", "", "", ""];
         pasted.split("").forEach((ch, i) => { next[i] = ch; });
         setOtp(next);
-        otpRefs.current[Math.min(pasted.length, 3)]?.focus();
+        otpRefs.current[Math.min(pasted.length, 5)]?.focus();
     };
 
     /* ─────────────────────────────────────────────────────
@@ -260,8 +220,7 @@ export const ForgotPasswordModal = ({ isOpen, onClose }: Props) => {
     ───────────────────────────────────────────────────── */
     const steps: { key: Step; label: string }[] = [
         { key: "email", label: "Email" },
-        { key: "otp", label: "Verify OTP" },
-        { key: "password", label: "New Password" },
+        { key: "otp", label: "Reset Password" },
     ];
     const stepIndex = steps.findIndex((s) => s.key === step);
 
@@ -397,7 +356,7 @@ export const ForgotPasswordModal = ({ isOpen, onClose }: Props) => {
                                 </div>
                                 <h2 className="text-2xl font-bold">Enter OTP</h2>
                                 <p className="text-muted-foreground text-sm">
-                                    We sent a 4-digit code to{" "}
+                                    We sent a 6-digit code to{" "}
                                     <span className="text-foreground font-medium break-all">{email}</span>
                                 </p>
                             </div>
@@ -421,7 +380,7 @@ export const ForgotPasswordModal = ({ isOpen, onClose }: Props) => {
                                 </span>
                             </div>
 
-                            {/* 4-digit OTP inputs */}
+                            {/* 6-digit OTP inputs */}
                             <div className="space-y-2">
                                 <Label>OTP Code</Label>
                                 <div className="flex gap-3 justify-center">
@@ -442,67 +401,7 @@ export const ForgotPasswordModal = ({ isOpen, onClose }: Props) => {
                                 </div>
                             </div>
 
-                            {error && (
-                                <div className="flex items-start gap-2 text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-xl px-4 py-3">
-                                    <span className="mt-0.5">⚠</span>
-                                    <span>{error}</span>
-                                </div>
-                            )}
-
-                            <Button
-                                onClick={handleVerifyOtp}
-                                disabled={!isOtpComplete || isLoading || isTimerExpired}
-                                className={`w-full py-6 text-base font-semibold transition-all duration-300 ${!isOtpComplete || isTimerExpired
-                                    ? "bg-secondary text-muted-foreground cursor-not-allowed opacity-50"
-                                    : "bg-primary text-primary-foreground hover:bg-primary/90 btn-glow"
-                                    }`}
-                            >
-                                {isLoading ? (
-                                    <span className="flex items-center gap-2">
-                                        <RefreshCw className="w-4 h-4 animate-spin" />
-                                        Verifying…
-                                    </span>
-                                ) : (
-                                    <span className="flex items-center gap-2">
-                                        <ShieldCheck className="w-5 h-5" />
-                                        Verify OTP
-                                    </span>
-                                )}
-                            </Button>
-
-                            {/* Resend link */}
-                            <p className="text-center text-sm text-muted-foreground">
-                                Didn't receive the code?{" "}
-                                <button
-                                    onClick={() => {
-                                        setOtp(["", "", "", ""]);
-                                        setError(null);
-                                        setStep("email");
-                                    }}
-                                    className="text-primary hover:underline font-medium"
-                                >
-                                    Go back & resend
-                                </button>
-                            </p>
-                        </div>
-                    )}
-
-                    {/* ═══════════════════════════════════════
-                        STEP: NEW PASSWORD
-                    ═══════════════════════════════════════ */}
-                    {step === "password" && (
-                        <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-                            <div className="text-center space-y-2">
-                                <div className="mx-auto w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
-                                    <Lock className="w-7 h-7 text-primary" />
-                                </div>
-                                <h2 className="text-2xl font-bold">Set New Password</h2>
-                                <p className="text-muted-foreground text-sm">
-                                    OTP verified! Now create a strong new password for your account.
-                                </p>
-                            </div>
-
-                            <div className="space-y-2">
+                            <div className="space-y-2 mt-6">
                                 <Label htmlFor="fp-new-password">New Password</Label>
                                 <div className="relative">
                                     <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
@@ -512,9 +411,8 @@ export const ForgotPasswordModal = ({ isOpen, onClose }: Props) => {
                                         placeholder="••••••••"
                                         value={newPassword}
                                         onChange={(e) => { setNewPassword(e.target.value); setError(null); }}
-                                        onKeyDown={(e) => e.key === "Enter" && isPasswordValid && handleUpdatePassword()}
+                                        onKeyDown={(e) => e.key === "Enter" && isOtpComplete && isPasswordValid && handleUpdatePassword()}
                                         className="pl-12 pr-12 py-6 bg-secondary/50 border-primary/10 focus:border-primary/50"
-                                        autoFocus
                                     />
                                     <button
                                         type="button"
@@ -563,8 +461,8 @@ export const ForgotPasswordModal = ({ isOpen, onClose }: Props) => {
 
                             <Button
                                 onClick={handleUpdatePassword}
-                                disabled={!isPasswordValid || isLoading}
-                                className={`w-full py-6 text-base font-semibold transition-all duration-300 ${!isPasswordValid
+                                disabled={!isOtpComplete || !isPasswordValid || isLoading || isTimerExpired}
+                                className={`w-full py-6 text-base font-semibold transition-all duration-300 ${!isOtpComplete || !isPasswordValid || isTimerExpired
                                     ? "bg-secondary text-muted-foreground cursor-not-allowed opacity-50"
                                     : "bg-primary text-primary-foreground hover:bg-primary/90 btn-glow"
                                     }`}
@@ -572,15 +470,30 @@ export const ForgotPasswordModal = ({ isOpen, onClose }: Props) => {
                                 {isLoading ? (
                                     <span className="flex items-center gap-2">
                                         <RefreshCw className="w-4 h-4 animate-spin" />
-                                        Updating…
+                                        Updating...
                                     </span>
                                 ) : (
                                     <span className="flex items-center gap-2">
                                         <Lock className="w-5 h-5" />
-                                        Update Password
+                                        Verify & Update Password
                                     </span>
                                 )}
                             </Button>
+
+                            {/* Resend link */}
+                            <p className="text-center text-sm text-muted-foreground">
+                                Didn't receive the code?{" "}
+                                <button
+                                    onClick={() => {
+                                        setOtp(["", "", "", "", "", ""]);
+                                        setError(null);
+                                        setStep("email");
+                                    }}
+                                    className="text-primary hover:underline font-medium"
+                                >
+                                    Go back & resend
+                                </button>
+                            </p>
                         </div>
                     )}
 

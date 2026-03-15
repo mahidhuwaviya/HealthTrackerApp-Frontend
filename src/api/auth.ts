@@ -89,7 +89,7 @@ export const authApi = {
     // Step 1: Request OTP to be sent to email.
     // Now a POST request sending the OtpVerificationRequestDTO format 
     // with 'val' enum to specify the context (verifyEmail or ForgotPassword).
-    getOtp: async (email: string, type: "verifyEmail" | "ForgotPassword" = "verifyEmail") => {
+    getOtp: async (email: string, type: "verifyEmail" | "ForgotPassword" | "UpdateEmail" = "verifyEmail") => {
         const payload = {
             email: email,
             val: type
@@ -106,7 +106,8 @@ export const authApi = {
             val: type,
             password: dto.newPassword // The backend DTO expects this, even if empty initially
         };
-        const response = await apiClient.post(API_ROUTES.AUTH.VERIFY_OTP, payload);
+        const endpoint = type === "ForgotPassword" ? API_ROUTES.AUTH.UPDATE_PASSWORD : API_ROUTES.AUTH.UPDATE_EMAIL;
+        const response = await apiClient.put(endpoint, payload);
         return response.data;
     },
 
@@ -128,7 +129,7 @@ export const authApi = {
         const payload = {
             email: dto.email,
             otp: dto.otp,
-            val: "verifyEmail",      // Enum used for email verifications
+            val: "UpdateEmail",      // Enum used for email verifications
             password: dto.newPassword // Usually empty/ignored per backend expectations here
         };
         const response = await apiClient.put(`${API_ROUTES.AUTH.UPDATE_EMAIL}?oldEmail=${encodeURIComponent(oldEmail)}`, payload);
