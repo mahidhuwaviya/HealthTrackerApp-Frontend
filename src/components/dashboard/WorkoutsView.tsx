@@ -144,7 +144,7 @@ export const WorkoutsView = ({
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-2 gap-3 sm:gap-4">
                             <div className="stat-card p-5 rounded-3xl bg-primary/5 border-primary/10 flex flex-col items-center justify-center gap-2 hover:bg-primary/10 transition-colors">
                                 <span className="text-3xl font-bold text-primary">{workoutsCount}</span>
                                 <span className="text-xs font-bold text-primary/60 uppercase tracking-widest">Exercises</span>

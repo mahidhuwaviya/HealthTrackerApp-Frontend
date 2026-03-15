@@ -89,11 +89,11 @@ export const OverviewView = ({ data, targets, hasCompletedProfile, onUpdateProfi
         <>
             {/* Recent Activity */}
             <section className="mb-8">
-                <h2 className="text-xl font-bold mb-6 flex items-center gap-2 gradient-text">
-                    <Zap className="w-6 h-6 text-primary" />
+                <h2 className="text-lg sm:text-xl font-bold mb-4 sm:mb-6 flex items-center gap-2 gradient-text">
+                    <Zap className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
                     Recent Activity
                 </h2>
-                <div className="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-6">
+                <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4 sm:gap-6">
                     {activities.map((activity, index) => (
                         <div key={index} className="stat-card flex items-center gap-5 inner-glow p-6">
                             <div className={`w-14 h-14 rounded-2xl ${activity.color} flex items-center justify-center shadow-lg`}>
@@ -110,8 +110,8 @@ export const OverviewView = ({ data, targets, hasCompletedProfile, onUpdateProfi
 
             {/* Today's Progress */}
             <section className="mb-8 place-content-center">
-                <h2 className="text-xl font-bold mb-6 gradient-text">Today's Progress</h2>
-                <div className="grid grid-cols-[repeat(auto-fit,minmax(260px,1fr))] gap-6">
+                <h2 className="text-lg sm:text-xl font-bold mb-4 sm:mb-6 gradient-text">Today's Progress</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6">
                     {[
                         { icon: Droplets, label: "Water", current: waterCurrent, goal: waterGoal, unit: "ml", progress: 100, displayValue: `${Math.round(waterCurrent as number).toLocaleString()}`, displayUnit: 'ml', href: "/dashboard/water" },
                         { icon: Footprints, label: "Steps", current: stepsCurrent, goal: stepsGoal, unit: "", progress: stepsProgress, displayValue: Math.round(stepsCurrent).toLocaleString(), displayUnit: '', href: "/dashboard/steps" },

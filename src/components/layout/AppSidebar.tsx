@@ -25,12 +25,6 @@ import {
   SidebarFooter,
 } from "@/components/ui/sidebar";
 import { Link, useLocation } from "wouter";
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuTrigger 
-} from "@/components/ui/dropdown-menu";
 import { useState } from "react";
 import { AccountSettingsModal } from "@/components/dashboard/modals/AccountSettingsModal";
 
@@ -151,23 +145,16 @@ export function AppSidebar() {
         </div>
 
         <SidebarMenu>
+          {/* Manage Profile button */}
           <SidebarMenuItem>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <SidebarMenuButton tooltip="Settings">
-                  <Settings className="w-5 h-5" />
-                  <span className="group-data-[collapsible=icon]:hidden">Settings</span>
-                </SidebarMenuButton>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent side="right" align="end" className="w-56 glass-card border-white/10 p-2 ml-2">
-                 <DropdownMenuItem 
-                   className="cursor-pointer font-medium p-3 rounded-lg focus:bg-primary/20 focus:text-primary transition-all flex items-center gap-2"
-                   onClick={() => setShowSettings(true)}
-                 >
-                    <User className="w-4 h-4" /> Manage Profile
-                 </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <SidebarMenuButton
+              onClick={() => setShowSettings(true)}
+              tooltip="Manage Profile"
+              className="text-muted-foreground hover:text-foreground hover:bg-secondary"
+            >
+              <User className="w-5 h-5" />
+              <span className="group-data-[collapsible=icon]:hidden">Manage Profile</span>
+            </SidebarMenuButton>
           </SidebarMenuItem>
 
           <SidebarMenuItem>
@@ -180,7 +167,6 @@ export function AppSidebar() {
               <span className="group-data-[collapsible=icon]:hidden">Log Out</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
-
 
         </SidebarMenu>
       </SidebarFooter>

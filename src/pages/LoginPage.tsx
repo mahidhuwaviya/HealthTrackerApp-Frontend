@@ -87,8 +87,8 @@ const LoginPage = () => {
       </div>
 
       {/* Left side - Form */}
-      <div className="flex-1 flex items-center justify-center p-8 relative z-10">
-        <div className="w-full max-w-md space-y-8">
+      <div className="flex-1 flex items-center justify-center p-4 sm:p-8 relative z-10">
+        <div className="w-full max-w-md space-y-6 sm:space-y-8">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 mb-8">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center">
@@ -99,7 +99,7 @@ const LoginPage = () => {
 
           {/* Header */}
           <div className="space-y-2">
-            <h1 className="text-3xl font-bold">
+            <h1 className="text-2xl sm:text-3xl font-bold">
               {isLogin ? "Welcome back!" : "Create your account"}
             </h1>
             <p className="text-muted-foreground">
@@ -175,8 +175,10 @@ const LoginPage = () => {
         </div>
       </div>
 
-      {/* Right side - Visual */}
-      <LoginVisuals />
+      {/* Right side - Visual (hidden on mobile) */}
+      <div className="hidden lg:block">
+        <LoginVisuals />
+      </div>
 
       {isLoading && (
         <GlassLoader state="fetching" message="Authenticating..." />

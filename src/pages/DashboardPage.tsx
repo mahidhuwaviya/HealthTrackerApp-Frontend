@@ -152,12 +152,12 @@ const DashboardPage = () => {
                 />
 
                 {/* Main Content */}
-                <main className="p-4 md:p-8 lg:p-10 max-w-7xl mx-auto w-full relative z-10 animate-fade-in-up">
-                    <div className="mb-8">
-                        <h1 className="text-2xl md:text-3xl 2xl:text-5xl font-bold mb-2 font-instrument">
-                            Welcome back, <span className="gradient-text">{user?.name || "User"}</span>!
+                <main className="p-3 sm:p-6 md:p-8 lg:p-10 max-w-7xl mx-auto w-full relative z-10 animate-fade-in-up">
+                    <div className="mb-4 sm:mb-8">
+                        <h1 className="text-xl sm:text-2xl md:text-3xl 2xl:text-5xl font-bold mb-1 sm:mb-2 font-instrument">
+                            Welcome back, <span className="gradient-text">{user?.name?.split(" ")[0] || "User"}</span>!
                         </h1>
-                        <p className="text-muted-foreground 2xl:text-xl font-instrument">
+                        <p className="text-sm sm:text-base text-muted-foreground 2xl:text-xl font-instrument">
                             Here's your health summary for <span className="font-semibold text-foreground">{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</span>
                         </p>
                     </div>

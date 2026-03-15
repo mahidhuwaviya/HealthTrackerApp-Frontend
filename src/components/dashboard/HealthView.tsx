@@ -114,16 +114,16 @@ export const HealthView = ({ onUpdateProfile, data }: HealthViewProps) => {
     return (
         <div className="space-y-6 animate-fade-in">
             {/* Header */}
-            <div className="flex items-center justify-between p-6 glass-card inner-glow">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:justify-between p-4 sm:p-6 glass-card inner-glow">
                 <div>
-                    <h2 className="text-2xl font-bold flex items-center gap-2 text-heart">
-                        <HeartPulse className="w-6 h-6" /> Health Overview
+                    <h2 className="text-xl sm:text-2xl font-bold flex items-center gap-2 text-heart">
+                        <HeartPulse className="w-5 h-5 sm:w-6 sm:h-6" /> Health Overview
                     </h2>
-                    <p className="text-muted-foreground mt-1">
+                    <p className="text-sm text-muted-foreground mt-1">
                         Your comprehensive health profile and vital statistics.
                     </p>
                 </div>
-                <Button onClick={onUpdateProfile} className="bg-primary/10 text-primary hover:bg-primary/20 border-primary/20">
+                <Button onClick={onUpdateProfile} className="bg-primary/10 text-primary hover:bg-primary/20 border-primary/20 self-start sm:self-auto shrink-0">
                     <Edit className="w-4 h-4 mr-2" /> Update Details
                 </Button>
             </div>

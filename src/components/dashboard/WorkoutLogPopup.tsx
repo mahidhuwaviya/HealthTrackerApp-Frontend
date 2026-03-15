@@ -164,7 +164,7 @@ export const WorkoutLogPopup: React.FC<WorkoutLogPopupProps> = ({ isOpen, onClos
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-w-4xl max-h-[80dvh] overflow-y-auto">
+            <DialogContent className="w-[95vw] sm:max-w-4xl max-h-[85dvh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                         <Dumbbell className="w-5 h-5 text-primary" /> Log Workout
@@ -220,7 +220,7 @@ export const WorkoutLogPopup: React.FC<WorkoutLogPopupProps> = ({ isOpen, onClos
                                     </Button>
                                 </div>
 
-                                <div className="grid md:grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     {/* Search Input */}
                                     <div className="grid gap-2 relative">
                                         <Label>Exercise Name</Label>
@@ -263,7 +263,7 @@ export const WorkoutLogPopup: React.FC<WorkoutLogPopupProps> = ({ isOpen, onClos
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-3 gap-4">
+                                <div className="grid grid-cols-3 gap-2 sm:gap-4">
                                     <div className="grid gap-2">
                                         <Label>Sets</Label>
                                         <Input
