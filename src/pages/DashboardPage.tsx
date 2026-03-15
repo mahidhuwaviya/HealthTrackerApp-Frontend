@@ -68,7 +68,7 @@ const DashboardPage = () => {
         if (isLoading) return;
 
         const hasSeenSetupPrompt = localStorage.getItem("hasSeenSetupPrompt");
-        
+
         // If not completed and never seen prompt, maybe force profile modal or do something else
         // but user requested to remove welcome modal completely. 
         if (!hasCompletedProfile) {
@@ -158,7 +158,8 @@ const DashboardPage = () => {
                             Welcome back, <span className="gradient-text">{user?.name?.split(" ")[0] || "User"}</span>!
                         </h1>
                         <p className="text-sm sm:text-base text-muted-foreground 2xl:text-xl font-instrument">
-                            Here's your health summary for <span className="font-semibold text-foreground">{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</span>
+                            Here's your health summary for
+                            {/* <span className="font-semibold text-foreground">{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</span> */}
                         </p>
                     </div>
 
