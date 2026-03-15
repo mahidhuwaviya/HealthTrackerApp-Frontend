@@ -38,14 +38,14 @@ const LoginPage = () => {
         // Path A: Sign In
         response = await authApi.login(data);
         toast.success("Welcome back!");
-        // goToDashboard()
-
       } else {
-        // Path B: Sign Up (data no longer contains name)
+        // Path B: Sign Up 
+        const signupData = data as RegisterRequest;
         response = await authApi.register({
-            email: data.email,
-            password: data.password,
-            name: data.email.split("@")[0] // Fallback name since we removed the field
+          email: signupData.email,
+          password: signupData.password,
+          otp: signupData.otp,
+          val: "verifyEmail"// Fallback name since we removed the field
         });
         toast.success("Account created! Logging you in...");
       }

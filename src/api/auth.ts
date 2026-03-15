@@ -26,8 +26,9 @@ export interface DecodedToken {
 }
 
 export interface RegisterRequest {
-    name: string;
+    val: string;
     email: string;
+    otp?: string;
     password: string;
 }
 
@@ -48,10 +49,14 @@ export const authApi = {
     register: async (data: RegisterRequest) => {
         // Map frontend RegisterRequest to backend UserInfoRequestDTO format
         const payload = {
-            userEmail: data.email,
-            userName: data.name || data.email.split('@')[0], 
-            password: data.password,
-            role: "ROLE_USER" // Default role for new signups
+            email: data.email,
+            otp: data.otp,
+            val: "verifyEmail",
+            password: data.password
+            // userEmail: data.email,
+            // userName: data.name || data.email.split('@')[0],
+            // password: data.password,
+            // role: "ROLE_USER" // Default role for new signups
         };
         console.log("Registering with payload:", payload);
         const response = await apiClient.post<AuthResponse>(API_ROUTES.AUTH.REGISTER, payload);
@@ -99,17 +104,17 @@ export const authApi = {
     },
 
     // Step 2: Verify OTP
-    verifyOtp: async (dto: OtpVerifyDto, type: "verifyEmail" | "ForgotPassword" = "verifyEmail") => {
-        const payload = {
-            email: dto.email,
-            otp: dto.otp,
-            val: type,
-            password: dto.newPassword // The backend DTO expects this, even if empty initially
-        };
-        const endpoint = type === "ForgotPassword" ? API_ROUTES.AUTH.UPDATE_PASSWORD : API_ROUTES.AUTH.UPDATE_EMAIL;
-        const response = await apiClient.put(endpoint, payload);
-        return response.data;
-    },
+    // verifyOtp: async (dto: OtpVerifyDto, type: "verifyEmail" | "ForgotPassword" | "UpdateEmail" = "verifyEmail") => {
+    //     const payload = {
+    //         email: dto.email,
+    //         otp: dto.otp,
+    //         val: type,
+    //         password: dto.newPassword // The backend DTO expects this, even if empty initially
+    //     };
+    //     const endpoint = type === "verifyEmail" ? API_ROUTES.AUTH.REGISTER : ;
+    //     const response = await apiClient.put(endpoint, payload);
+    //     return response.data;
+    // },
 
     // Step 3: Set new password using the same DTO (newPassword filled)
     updatePassword: async (dto: OtpVerifyDto) => {

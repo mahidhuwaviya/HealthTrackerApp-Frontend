@@ -16,7 +16,7 @@ interface LoginFormProps {
     onForgotPassword?: () => void;
 }
 
-type SignupStep = "email" | "otp" | "password";
+type SignupStep = "email" | "otp";
 
 export const LoginForm = ({ isLogin, onSubmit, isLoading = false, onForgotPassword }: LoginFormProps) => {
     const [email, setEmail] = useState("");
@@ -37,10 +37,9 @@ export const LoginForm = ({ isLogin, onSubmit, isLoading = false, onForgotPasswo
     const isPasswordValid = password.length >= AUTH_VALIDATION.MIN_PASSWORD_LENGTH;
     const isConfirmPasswordValid = password === confirmPassword;
 
-    // Form validity depends on whether it's login or signup
     const isFormValid = isLogin
         ? (isEmailValid && isPasswordValid)
-        : (isEmailValid && isPasswordValid && isConfirmPasswordValid && signupStep === "password");
+        : (isEmailValid && isPasswordValid && isConfirmPasswordValid && signupStep === "otp" && otp.length >= 6);
 
     // Handle OTP Countdown
     useEffect(() => {
@@ -59,9 +58,17 @@ export const LoginForm = ({ isLogin, onSubmit, isLoading = false, onForgotPasswo
         return `${m}:${s.toString().padStart(2, "0")}`;
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!isFormValid) return;
+        
+        if (!isLogin && signupStep === "otp") {
+            // Pass OTP directly alongside email and password for single-step registration 
+            onSubmit({ email, password, otp });
+            return;
+        }
+
+        // Standard Login
         onSubmit({
             email,
             password,
@@ -87,7 +94,7 @@ export const LoginForm = ({ isLogin, onSubmit, isLoading = false, onForgotPasswo
             await authApi.getOtp(email, "verifyEmail");
             toast.success("Verification code sent to your email!");
             setSignupStep("otp");
-            setTimer(300); // 5 minutes = 300 seconds
+            setTimer(60); // 1 minute = 60 seconds
         } catch (error: any) {
             console.error("Failed to send OTP:", error);
             const msg = extractErrorMessage(error);
@@ -98,27 +105,6 @@ export const LoginForm = ({ isLogin, onSubmit, isLoading = false, onForgotPasswo
                 setSignupStep("email");
                 setOtp("");
             }
-        } finally {
-            setIsVerifying(false);
-        }
-    };
-
-    const handleVerifyOtp = async () => {
-        if (otp.length < 6) {
-            toast.error("Please enter the verification code.");
-            return;
-        }
-        setIsVerifying(true);
-        try {
-            // Verify OTP with empty password context
-            await authApi.verifyOtp({ email, otp, newPassword: "" }, "verifyEmail");
-            toast.success("Email verified successfully!");
-            setSignupStep("password");
-            setTimer(0); // clear timer on success
-        } catch (error: any) {
-            console.error("Failed to verify OTP:", error);
-            const msg = extractErrorMessage(error);
-            toast.error(msg);
         } finally {
             setIsVerifying(false);
         }
@@ -185,15 +171,7 @@ export const LoginForm = ({ isLogin, onSubmit, isLoading = false, onForgotPasswo
                         </p>
                     )}
 
-                    <Button
-                        type="button"
-                        onClick={handleVerifyOtp}
-                        disabled={otp.length < 4 || isVerifying || isLoading}
-                        className="w-full py-6 transition-all duration-300 bg-primary text-primary-foreground hover:bg-primary/90"
-                    >
-                        {isVerifying ? "Verifying..." : "Confirm Code"}
-                    </Button>
-                    <div className="text-center text-sm">
+                    <div className="text-center text-sm pt-2">
                         <button
                             type="button"
                             onClick={handleSendOtp}
@@ -206,8 +184,8 @@ export const LoginForm = ({ isLogin, onSubmit, isLoading = false, onForgotPasswo
                 </div>
             )}
 
-            {/* PASSWORD FIELDS (Login OR Validated Signup) */}
-            {(isLogin || signupStep === "password") && (
+            {/* PASSWORD FIELDS (Login OR OTP Signup) */}
+            {(isLogin || signupStep === "otp") && (
                 <div className="space-y-4 animate-in fade-in slide-in-from-top-4 duration-300">
                     <div className="space-y-2">
                         <div className="flex items-center justify-between">
@@ -277,16 +255,16 @@ export const LoginForm = ({ isLogin, onSubmit, isLoading = false, onForgotPasswo
             )}
 
             {/* MAIN SUBMIT BUTTON */}
-            {(isLogin || signupStep === "password") && (
+            {(isLogin || signupStep === "otp") && (
                 <Button
                     type="submit"
-                    disabled={isLoading || !isFormValid}
+                    disabled={isLoading || isVerifying || !isFormValid}
                     className={`w-full py-6 btn-glow text-lg transition-all duration-300 ${!isFormValid
                         ? "bg-secondary text-muted-foreground cursor-not-allowed opacity-50"
                         : "bg-primary text-primary-foreground hover:bg-primary/90"
                         }`}
                 >
-                    {isLoading ? (
+                    {isLoading || isVerifying ? (
                         "Please wait..."
                     ) : (
                         <>
