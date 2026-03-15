@@ -13,8 +13,6 @@ import { QuickAddModal } from "@/components/dashboard/modals/QuickAddModal";
 import { UpdateGoalsModal } from "@/components/dashboard/modals/UpdateGoalsModal";
 import { AdminView } from "@/components/dashboard/AdminView";
 
-import { WelcomeModal } from "@/components/dashboard/modals/WelcomeModal";
-
 import { useAuth } from "@/hooks/useAuth";
 
 import { MealEntryPopup } from "@/components/dashboard/MealEntryPopup";
@@ -31,7 +29,6 @@ const DashboardPage = () => {
     const subpage = params ? params.subpage : "overview";
     const { data: dashboardData, isLoading } = useDashboardData();
 
-    const [showWelcomeModal, setShowWelcomeModal] = useState(false);
     const [showProfileModal, setShowProfileModal] = useState(false);
     const [showQuickAdd, setShowQuickAdd] = useState(false);
     const [showTargetModal, setShowTargetModal] = useState(false);
@@ -60,40 +57,32 @@ const DashboardPage = () => {
         }
     }, [dashboardData]);
 
-    useEffect(() => {
-        if (isLoading) return;
-
-        const hasSeenModal = localStorage.getItem("hasSeenWelcomeModal");
-        
-        if (!hasCompletedProfile && !hasSeenModal) {
-            const timer = setTimeout(() => setShowWelcomeModal(true), 1000);
-            return () => clearTimeout(timer);
-        } else if (hasCompletedProfile && !hasSeenModal) {
-            localStorage.setItem("hasSeenWelcomeModal", "true");
-        }
-    }, [dashboardData, isLoading]);
-
-    const handleSkipWelcome = () => {
-        setShowWelcomeModal(false);
-        localStorage.setItem("hasSeenWelcomeModal", "true");
-    };
-
-    const handleStartSetup = () => {
-        setShowWelcomeModal(false);
-        setShowProfileModal(true);
-        localStorage.setItem("hasSeenWelcomeModal", "true");
-    };
-
-    const handleCloseProfileModal = () => {
-        setShowProfileModal(false);
-    };
-
     // Use the backend's explicit onboarding flag if available, otherwise fallback to checking core metrics
     const hasCompletedProfile = !!(
         dashboardData?.profile?.isOnboardingComplete ||
         (dashboardData?.profile?.age && dashboardData?.profile?.currentWeightKg) ||
         (dashboardData?.profile?.age && dashboardData?.profile?.weight)
     );
+
+    useEffect(() => {
+        if (isLoading) return;
+
+        const hasSeenSetupPrompt = localStorage.getItem("hasSeenSetupPrompt");
+        
+        // If not completed and never seen prompt, maybe force profile modal or do something else
+        // but user requested to remove welcome modal completely. 
+        if (!hasCompletedProfile) {
+            // We just let them hit the locked states which tell them to set up.
+        }
+    }, [dashboardData, isLoading, hasCompletedProfile]);
+
+    const handleStartSetup = () => {
+        setShowProfileModal(true);
+    };
+
+    const handleCloseProfileModal = () => {
+        setShowProfileModal(false);
+    };
 
     const renderContent = () => {
         const commonProps = {
@@ -176,12 +165,6 @@ const DashboardPage = () => {
                     {renderContent()}
                 </main>
             </div>
-
-            <WelcomeModal
-                isOpen={showWelcomeModal}
-                onClose={handleSkipWelcome}
-                onStartSetup={handleStartSetup}
-            />
 
             <DetailedProfileModal isOpen={showProfileModal} onClose={handleCloseProfileModal} />
             <MealEntryPopup isOpen={showMealPopup} onClose={() => setShowMealPopup(false)} />

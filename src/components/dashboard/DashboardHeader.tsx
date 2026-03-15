@@ -40,24 +40,24 @@ export const DashboardHeader = ({
 
     return (
         <header className="sticky top-0 z-30 glass-card rounded-none border-x-0 border-t-0 shrink-0 bg-background/60 backdrop-blur-xl">
-            <div className="flex items-center justify-between px-6 py-4 max-w-7xl mx-auto w-full">
-                <div className="flex items-center gap-4">
+            <div className="flex items-center justify-between px-3 sm:px-6 py-3 sm:py-4 max-w-7xl mx-auto w-full gap-2 sm:gap-4">
+                <div className="flex items-center gap-2 sm:gap-4 shrink-0">
                     <SidebarTrigger className="hover:bg-primary/10 hover:text-primary transition-colors" />
-                    <h1 className="text-xl font-bold gradient-text capitalize tracking-tight">{subpage === "overview" ? "Dashboard" : subpage}</h1>
+                    <h1 className="text-lg sm:text-xl font-bold gradient-text capitalize tracking-tight truncate max-w-[120px] sm:max-w-none">{subpage === "overview" ? "Dashboard" : subpage}</h1>
                 </div>
 
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2 sm:gap-4 shrink-0">
                     {isProfileComplete && (
-                        <Button size="sm" className="bg-gradient-to-r from-primary to-accent hover:to-primary text-primary-foreground shadow-lg hover:shadow-primary/25 transition-all duration-300 rounded-full px-6" onClick={onQuickAdd}>
-                            <Plus className="w-4 h-4 mr-2" />
-                            Quick Add
+                        <Button size="sm" className="bg-gradient-to-r from-primary to-accent hover:to-primary text-primary-foreground shadow-lg hover:shadow-primary/25 transition-all duration-300 rounded-full px-4 sm:px-6" onClick={onQuickAdd}>
+                            <Plus className="w-4 h-4 sm:mr-2 shrink-0" />
+                            <span className="hidden sm:inline">Quick Add</span>
                         </Button>
                     )}
 
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="p-0 hover:bg-transparent rounded-full focus-visible:ring-2 focus-visible:ring-primary/50">
-                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center font-bold text-primary-foreground cursor-pointer shadow-md hover:scale-105 transition-transform border-2 border-background">
+                            <Button variant="ghost" className="p-0 hover:bg-transparent rounded-full focus-visible:ring-2 focus-visible:ring-primary/50 shrink-0 shrink-0 ml-1 sm:ml-0">
+                                <div className="w-8 h-8 sm:w-10 sm:h-10 text-xs sm:text-sm rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center font-bold text-primary-foreground cursor-pointer shadow-md hover:scale-105 transition-transform border-2 border-background">
                                     {getInitials(user?.name || "User")}
                                 </div>
                             </Button>

@@ -315,12 +315,12 @@
   }
 
   .nucleus-wrapper {
-    @apply relative w-64 h-64 flex items-center justify-center;
+    @apply relative w-48 h-48 sm:w-64 sm:h-64 flex items-center justify-center;
     perspective: 1000px;
   }
 
   .nucleus-orb {
-    @apply w-24 h-24 rounded-full;
+    @apply w-16 h-16 sm:w-24 sm:h-24 rounded-full;
     background: #D4C555;
     box-shadow: 0 0 40px rgba(212, 197, 85, 0.6), inset 0 0 20px rgba(255, 255, 255, 0.4);
     backdrop-filter: blur(12px);
@@ -364,7 +364,7 @@
   }
 
   .loading-text {
-    @apply mt-12 text-primary font-medium tracking-[0.4em] uppercase opacity-70 text-lg;
+    @apply mt-8 sm:mt-12 text-primary font-medium tracking-[0.4em] uppercase opacity-70 text-sm sm:text-lg;
     font-family: 'Instrument Sans', sans-serif;
     text-shadow: 0 0 15px rgba(212, 197, 85, 0.5);
   }
